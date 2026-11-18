@@ -279,45 +279,52 @@ def run_site_simulation(
         "grid_export_kwh": grid_exp.sum(),
         "self_sufficiency": (1.0 - grid_imp.sum() / load_kwh.sum()) * 100.0,
 }
+
+
 def compute_national_scaleup(
-        nat_res: dict,
-        us_energy_target_twh: float,
-        pv_cost_per_w: float,
-        racking_batt_cost_per_kwh: float,
-        megapack_cost_per_kwh: float,
+    nat_res: dict,
+    us_energy_target_twh: float,
+    pv_cost_per_w: float,
+    racking_batt_cost_per_kwh: float,
+    megapack_cost_per_kwh: float,
 ):
-# """Scales the unit block from the National Array site to meet the U.S. TWh target."""
-us_target_kwh = us_energy_target_twh * 1e9
-scale_factor = us_target_kwh / nat_res["annual_ac_kwh"]
-target_capacity_kwp = scale_factor * nat_res["nameplate_kw"]
-target_capacity_gwp = target_capacity_kwp / 1e6
-total_panels = nat_res["total_panels_unit"] * scale_factor
-total_area_sqmi = (nat_res["gross_land_m2_per_unit"] * scale_factor / 1e6) * 0.386102
-total_storage_gwh = (nat_res["actual_batt_kwh"] * scale_factor) / 1e6
-total_cells_billions = (nat_res["cells_per_unit"] * scale_factor) / 1e9
-megapack_equiv_units = (total_storage_gwh * 1e6) / 3916.0
-pv_capex_usd = target_capacity_kwp * 1000.0 * pv_cost_per_w
-racking_batt_capex_usd = total_storage_gwh * 1e6 * racking_batt_cost_per_kwh
-megapack_batt_capex_usd = total_storage_gwh * 1e6 * megapack_cost_per_kwh
-blended_capex_per_kwp = (pv_capex_usd + racking_batt_capex_usd) / target_capacity_kwp
-return {
-"scale_factor": scale_factor,
-"target_capacity_kwp": target_capacity_kwp,
-"target_capacity_gwp": target_capacity_gwp,
-"capacity_factor_ac": nat_res["cf_ac"],
-"capacity_factor_dc": nat_res["cf_dc"],
-"total_panels": total_panels,
-"total_area_sqmi": total_area_sqmi,
-"square_side_miles": math.sqrt(total_area_sqmi),
-"total_storage_gwh": total_storage_gwh,
-"total_cells_billions": total_cells_billions,
-"megapack_equiv_units": megapack_equiv_units,
-"pv_capex_usd": pv_capex_usd,
-"racking_batt_capex_usd": racking_batt_capex_usd,
-"megapack_batt_capex_usd": megapack_batt_capex_usd,
-"total_capex_integrated_usd": pv_capex_usd + racking_batt_capex_usd,
-"total_capex_megapack_usd": pv_capex_usd + megapack_batt_capex_usd,
-"capex_savings_usd": megapack_batt_capex_usd - racking_batt_capex_usd,
-"blended_capex_per_kwp": blended_capex_per_kwp,
-}
-  
+    """Scales the unit block from the National Array site to meet the U.S. TWh target."""
+    us_target_kwh = us_energy_target_twh * 1e9
+    scale_factor = us_target_kwh / nat_res["annual_ac_kwh"]
+
+    target_capacity_kwp = scale_factor * nat_res["nameplate_kw"]
+    target_capacity_gwp = target_capacity_kwp / 1e6
+    total_panels = nat_res["total_panels_unit"] * scale_factor
+    total_area_sqmi = (nat_res["gross_land_m2_per_unit"] * scale_factor / 1e6) * 0.386102
+
+    total_storage_gwh = (nat_res["actual_batt_kwh"] * scale_factor) / 1e6
+    total_cells_billions = (nat_res["cells_per_unit"] * scale_factor) / 1e9
+    megapack_equiv_units = (total_storage_gwh * 1e6) / 3916.0
+
+    pv_capex_usd = target_capacity_kwp * 1000.0 * pv_cost_per_w
+    racking_batt_capex_usd = total_storage_gwh * 1e6 * racking_batt_cost_per_kwh
+    megapack_batt_capex_usd = total_storage_gwh * 1e6 * megapack_cost_per_kwh
+
+    blended_capex_per_kwp = (pv_capex_usd + racking_batt_capex_usd) / target_capacity_kwp
+
+    return {
+        "scale_factor": scale_factor,
+        "target_capacity_kwp": target_capacity_kwp,
+        "target_capacity_gwp": target_capacity_gwp,
+        "capacity_factor_ac": nat_res["cf_ac"],
+        "capacity_factor_dc": nat_res["cf_dc"],
+        "total_panels": total_panels,
+        "total_area_sqmi": total_area_sqmi,
+        "square_side_miles": math.sqrt(total_area_sqmi),
+        "total_storage_gwh": total_storage_gwh,
+        "total_cells_billions": total_cells_billions,
+        "megapack_equiv_units": megapack_equiv_units,
+        "pv_capex_usd": pv_capex_usd,
+        "racking_batt_capex_usd": racking_batt_capex_usd,
+        "megapack_batt_capex_usd": megapack_batt_capex_usd,
+        "total_capex_integrated_usd": pv_capex_usd + racking_batt_capex_usd,
+        "total_capex_megapack_usd": pv_capex_usd + megapack_batt_capex_usd,
+        "capex_savings_usd": megapack_batt_capex_usd - racking_batt_capex_usd,
+        "blended_capex_per_kwp": blended_capex_per_kwp,
+    }
+

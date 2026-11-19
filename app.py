@@ -452,7 +452,7 @@ nat_res = run_site_simulation(
     storage_hours=nat_storage_hours, soc_min=soc_min, soc_max=soc_max,
     base_daily_kwh=base_daily_kwh,
     n_evs=n_evs,
-    ev_cons,
+    ev_cons=ev_cons,
     ev_daily=ev_daily,
     ev_chrg_max_I_home=ev_chrg_max_I_home
 )

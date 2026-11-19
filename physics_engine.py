@@ -80,12 +80,6 @@ def fit_module_cec():
 #import gc
 # ... keep existing imports ...
 
-def run_simulation_slider_imports(
-    base_daily_kwh=25.0,
-    n_evs=1,
-    ev_daily_miles=30.0,
-    ev_chrg_max_I_home=48
-):
     
 @st.cache_data(show_spinner="Downloading PVGIS TMY & running pvfactors bifacial + storage simulation...")
 def run_site_simulation(
@@ -104,6 +98,10 @@ def run_site_simulation(
     n_rows: int = 5,
     dc_ac_ratio: float = 0.93,
     batt_eff: float = 0.90,
+    base_daily_kwh: float = 25.0,
+    n_evs: int = 1,
+    ev_daily_miles: float = 30.0,
+    ev_chrg_max_I_home: int = 48,
 ):
     """Runs hourly pvfactors + CEC single-diode + seasonal load + racking LFP storage."""
     I_L_ref, I_o_ref, R_s, R_sh_ref, a_ref, Adjust = fit_module_cec()

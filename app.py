@@ -47,7 +47,7 @@ LEGEND_ABOVE = dict(
         title=None,
         orientation="h",
         yanchor="bottom",
-        y=1.1,
+        y=1.2,
         xanchor="center",
         x=0.5,
     ),

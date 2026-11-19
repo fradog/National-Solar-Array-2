@@ -77,7 +77,7 @@ def fit_module_cec():
     )
 
 
-import gc
+#import gc
 # ... keep existing imports ...
 
 @st.cache_data(show_spinner="Downloading PVGIS TMY & running pvfactors bifacial + storage simulation...")

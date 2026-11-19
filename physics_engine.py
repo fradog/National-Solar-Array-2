@@ -189,6 +189,10 @@ def run_site_simulation(
     dc_watts_unit = (iv_results["p_mp"] * n_modules * n_columns).fillna(0.0).clip(lower=0.0)
     ac_gen_kwh = (dc_watts_unit / 1000.0) * dc_ac_ratio
 
+
+    # --- Seasonal Residential Load Profile ---
+    
+    BASE_DAILY_KWH       = 21.0
     EV_CONS              = 300          # Wh/mi
     EV_DAILY             = 40           # mi
     N_EVS                = 2            # EVs in household

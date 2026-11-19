@@ -42,6 +42,7 @@ from solar_model import (
 
 # --- PLOTLY LEGEND ABOVE CHART ---
 LEGEND_ABOVE = dict(
+    margin=dict(t=100),
     legend=dict(
         title=None,
         orientation="h",
@@ -527,7 +528,7 @@ with st.expander("Physics & Racking Battery Simulation Charts (Home vs. National
         rear_nat = nat_res["irrad"]["total_inc_back"].resample("D").mean().values[:365]
         fig_phys.add_trace(go.Scatter(x=list(range(1, 366)), y=rear_home, name=f"{home_res['site_name']} Rear", line=dict(color="steelblue")), row=1, col=2)
         fig_phys.add_trace(go.Scatter(x=list(range(1, 366)), y=rear_nat, name=f"{nat_res['site_name']} Rear", line=dict(color="darkorange")), row=1, col=2)
-        fig_phys.update_layout(height=400, barmode="group", **LEGEND_BELOW)
+        fig_phys.update_layout(height=400, barmode="group", **LEGEND_ABOVE)
         st.plotly_chart(fig_phys, use_container_width=True)
 
     with tab_july:

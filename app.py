@@ -266,6 +266,24 @@ with st.sidebar.expander("System Scale & Lifespan", expanded=False):
     )
 
 # -------------------------------------------------
+# 2. System Scale & Lifespan
+# -------------------------------------------------
+st.sidebar.header("Simulation Parameters")
+
+# 1. Create sliders in app.py
+base_daily_kwh = st.sidebar.slider("Base Daily Load (kWh)", 5.0, 60.0, 25.0, step=1.0)
+n_evs = st.sidebar.slider("Number of EVs", 0, 4, 1, step=1)
+ev_daily_miles = st.sidebar.slider("Daily EV Driving (miles)", 0, 100, 30, step=5)
+cooling_setpoint_c = st.sidebar.slider("Cooling Setpoint (°C)", 20.0, 30.0, 24.0, step=0.5)
+
+# 2. Pass the slider values into physics_engine.py
+results = run_simulation_(
+    base_daily_kwh=base_daily_kwh,
+    n_evs=n_evs,
+    ev_daily_miles=ev_daily_miles,
+    cooling_setpoint_c=cooling_setpoint_c,
+)
+# -------------------------------------------------
 # 3. Costs (PV + Racking Battery vs. Megapack)
 # -------------------------------------------------
 with st.sidebar.expander("Costs (PV & Racking Storage)", expanded=False):

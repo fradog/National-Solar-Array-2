@@ -18,8 +18,8 @@ from typing import Union
 # --- RELOAD LOCAL MODULES ---
 if "efficiency_upgrade" in sys.modules:
     importlib.reload(sys.modules["efficiency_upgrade"])
-if "physics_engine" in sys.modules:
-    importlib.reload(sys.modules["physics_engine"])
+#if "physics_engine" in sys.modules:
+#    importlib.reload(sys.modules["physics_engine"])
 
 from efficiency_upgrade import calculate_efficiency_upgrade
 from physics_engine import (
@@ -267,112 +267,112 @@ with st.sidebar.expander("System Scale & Lifespan", expanded=False):
 # -------------------------------------------------
 # 3. Costs (PV + Racking Battery vs. Megapack)
 # -------------------------------------------------
-    with st.sidebar.expander("Costs (PV & Racking Storage)", expanded=False):
-        pv_cost_per_w = st.slider(
-            "Solar PV Cost ($/W DC)", 0.40, 2.50,
-            _ss("pv_cost_per_w", default_inputs["pv_cost_per_w"]), 0.05, format="$%.2f"
-        )
-        racking_batt_cost_per_kwh = st.slider(
-            "Racking-Integrated LFP Cost ($/kWh)", 40.0, 200.0,
-            _ss("racking_batt_cost_per_kwh", default_inputs["racking_batt_cost_per_kwh"]), 5.0, format="$%.0f"
-        )
-        megapack_cost_per_kwh = st.slider(
-            "Megapack 2 XL Benchmark ($/kWh)", 150.0, 400.0,
-            _ss("megapack_cost_per_kwh", default_inputs["megapack_cost_per_kwh"]), 5.0, format="$%.0f"
-        )
-        inputs["om_rate"] = _make_slider(
-            st, "om_rate", default_inputs["om_rate"],
-            unit="(fraction/yr)", min_value=0.0, max_value=0.05, step=0.001, format="%.3f"
-        )
-        inputs["grid_maintenance_bn"] = _make_slider(
-            st, "grid_maintenance_bn", default_inputs["grid_maintenance_bn"],
-            unit="$/yr", min_value=0, max_value=200, step=5, format="$%.0f"
-        )
+with st.sidebar.expander("Costs (PV & Racking Storage)", expanded=False):
+    pv_cost_per_w = st.slider(
+        "Solar PV Cost ($/W DC)", 0.40, 2.50,
+        _ss("pv_cost_per_w", default_inputs["pv_cost_per_w"]), 0.05, format="$%.2f"
+    )
+    racking_batt_cost_per_kwh = st.slider(
+        "Racking-Integrated LFP Cost ($/kWh)", 40.0, 200.0,
+        _ss("racking_batt_cost_per_kwh", default_inputs["racking_batt_cost_per_kwh"]), 5.0, format="$%.0f"
+    )
+    megapack_cost_per_kwh = st.slider(
+        "Megapack 2 XL Benchmark ($/kWh)", 150.0, 400.0,
+        _ss("megapack_cost_per_kwh", default_inputs["megapack_cost_per_kwh"]), 5.0, format="$%.0f"
+    )
+    inputs["om_rate"] = _make_slider(
+        st, "om_rate", default_inputs["om_rate"],
+        unit="(fraction/yr)", min_value=0.0, max_value=0.05, step=0.001, format="%.3f"
+    )
+    inputs["grid_maintenance_bn"] = _make_slider(
+        st, "grid_maintenance_bn", default_inputs["grid_maintenance_bn"],
+        unit="$/yr", min_value=0, max_value=200, step=5, format="$%.0f"
+    )
 
 # -------------------------------------------------
 # 4. Revenue & Savings
 # -------------------------------------------------
-    with st.sidebar.expander("Revenue & Savings", expanded=False):
-        inputs["revenue_per_kwh"] = _make_slider(
-            st, "revenue_per_kwh", default_inputs["revenue_per_kwh"],
-            unit="$/kWh", min_value=0.00, max_value=0.30, step=0.001, format="$%.3f"
-        )
-        inputs["avoided_fuel_per_kwh"] = _make_slider(
-            st, "avoided_fuel_per_kwh", default_inputs["avoided_fuel_per_kwh"],
-            unit="$/kWh", min_value=0.0, max_value=0.10, step=0.001, format="$%.3f"
-        )
-        inputs["carbon_tax_rate"] = _make_slider(
-            st, "carbon_tax_rate", default_inputs["carbon_tax_rate"],
-            unit="$/ton", min_value=0.0, max_value=200.0, step=5.0, format="$%.0f"
-        )
-        inputs["carbon_tax_effective_rate"] = _make_slider(
-            st, "carbon_tax_effective_rate", default_inputs["carbon_tax_effective_rate"],
-            unit="", min_value=0.5, max_value=1.0, step=0.05, format="%.2f"
-        )
-        inputs["displaceable_proportion"] = _make_slider(
-            st, "displaceable_proportion", default_inputs["displaceable_proportion"],
-            unit="", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
-        )
-        inputs["us_emissions_tons"] = st.text_input(
-            "Annual U.S. CO₂e Emissions (tons)",
-            value=str(_ss("us_emissions_tons", f"{default_inputs['us_emissions_tons']:,}"))
-        )
+with st.sidebar.expander("Revenue & Savings", expanded=False):
+    inputs["revenue_per_kwh"] = _make_slider(
+        st, "revenue_per_kwh", default_inputs["revenue_per_kwh"],
+        unit="$/kWh", min_value=0.00, max_value=0.30, step=0.001, format="$%.3f"
+    )
+    inputs["avoided_fuel_per_kwh"] = _make_slider(
+        st, "avoided_fuel_per_kwh", default_inputs["avoided_fuel_per_kwh"],
+        unit="$/kWh", min_value=0.0, max_value=0.10, step=0.001, format="$%.3f"
+    )
+    inputs["carbon_tax_rate"] = _make_slider(
+        st, "carbon_tax_rate", default_inputs["carbon_tax_rate"],
+        unit="$/ton", min_value=0.0, max_value=200.0, step=5.0, format="$%.0f"
+    )
+    inputs["carbon_tax_effective_rate"] = _make_slider(
+        st, "carbon_tax_effective_rate", default_inputs["carbon_tax_effective_rate"],
+        unit="", min_value=0.5, max_value=1.0, step=0.05, format="%.2f"
+    )
+    inputs["displaceable_proportion"] = _make_slider(
+        st, "displaceable_proportion", default_inputs["displaceable_proportion"],
+        unit="", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
+    )
+    inputs["us_emissions_tons"] = st.text_input(
+        "Annual U.S. CO₂e Emissions (tons)",
+        value=str(_ss("us_emissions_tons", f"{default_inputs['us_emissions_tons']:,}"))
+    )
 
 # -------------------------------------------------
 # 5. Reinvestment
 # -------------------------------------------------
-    with st.sidebar.expander("Reinvestment", expanded=False):
-        inputs["reinvestment_percentage"] = _make_slider(
-            st, "reinvestment_percentage", default_inputs["reinvestment_percentage"],
-            unit="(fraction)", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
-        )
-        inputs["investment_return_rate"] = _make_slider(
-            st, "investment_return_rate", default_inputs["investment_return_rate"],
-            unit="", min_value=0.0, max_value=0.20, step=0.005, format="%.3f"
-        )
-        inputs["discount_rate"] = _make_slider(
-            st, "discount_rate", default_inputs["discount_rate"],
-            unit="", min_value=0.0, max_value=0.20, step=0.005, format="%.3f"
-        )
+with st.sidebar.expander("Reinvestment", expanded=False):
+    inputs["reinvestment_percentage"] = _make_slider(
+        st, "reinvestment_percentage", default_inputs["reinvestment_percentage"],
+        unit="(fraction)", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
+    )
+    inputs["investment_return_rate"] = _make_slider(
+        st, "investment_return_rate", default_inputs["investment_return_rate"],
+        unit="", min_value=0.0, max_value=0.20, step=0.005, format="%.3f"
+    )
+    inputs["discount_rate"] = _make_slider(
+        st, "discount_rate", default_inputs["discount_rate"],
+        unit="", min_value=0.0, max_value=0.20, step=0.005, format="%.3f"
+    )
 
 # -------------------------------------------------
 # 6. Bond Financing
 # -------------------------------------------------
-    with st.sidebar.expander("Bond Financing", expanded=False):
-        us_adpop_default = int(default_inputs["us_adult_population"] / 1_000_000)
-        us_adpop_value = _ss("us_adpop_mil", us_adpop_default)
-        inputs["us_adult_population"] = st.slider(
-            "US Adult Population (M)", 200, 350, value=us_adpop_value, step=2
-        ) * 1_000_000
-    
-        inputs["bond_interest_rate"] = _make_slider(
-            st, "bond_interest_rate", default_inputs["bond_interest_rate"],
-            unit="", min_value=0.0, max_value=0.10, step=0.001, format="%.3f"
-        )
-        inputs["bond_term"] = st.number_input(
-            "Bond Term (years)", min_value=1, max_value=30,
-            value=int(_ss("bond_term", default_inputs["bond_term"])), step=1
-        )
-        inputs["dividend_percentage"] = _make_slider(
-            st, "dividend_percentage", default_inputs["dividend_percentage"],
-            unit="(fraction)", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
-        )
-        inputs["individual_investment"] = _make_slider(
-            st, "individual_investment", default_inputs["individual_investment"],
-            unit="$", min_value=0, max_value=100_000, step=100, format="$%.0f"
-        )
-        inputs["participation_rate_low"] = _make_slider(
-            st, "participation_rate_low", default_inputs["participation_rate_low"],
-            unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
-        )
-        inputs["participation_rate_mid"] = _make_slider(
-            st, "participation_rate_mid", default_inputs["participation_rate_mid"],
-            unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
-        )
-        inputs["participation_rate_high"] = _make_slider(
-            st, "participation_rate_high", default_inputs["participation_rate_high"],
-            unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
-        )
+with st.sidebar.expander("Bond Financing", expanded=False):
+    us_adpop_default = int(default_inputs["us_adult_population"] / 1_000_000)
+    us_adpop_value = _ss("us_adpop_mil", us_adpop_default)
+    inputs["us_adult_population"] = st.slider(
+        "US Adult Population (M)", 200, 350, value=us_adpop_value, step=2
+    ) * 1_000_000
+
+    inputs["bond_interest_rate"] = _make_slider(
+        st, "bond_interest_rate", default_inputs["bond_interest_rate"],
+        unit="", min_value=0.0, max_value=0.10, step=0.001, format="%.3f"
+    )
+    inputs["bond_term"] = st.number_input(
+        "Bond Term (years)", min_value=1, max_value=30,
+        value=int(_ss("bond_term", default_inputs["bond_term"])), step=1
+    )
+    inputs["dividend_percentage"] = _make_slider(
+        st, "dividend_percentage", default_inputs["dividend_percentage"],
+        unit="(fraction)", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
+    )
+    inputs["individual_investment"] = _make_slider(
+        st, "individual_investment", default_inputs["individual_investment"],
+        unit="$", min_value=0, max_value=100_000, step=100, format="$%.0f"
+    )
+    inputs["participation_rate_low"] = _make_slider(
+        st, "participation_rate_low", default_inputs["participation_rate_low"],
+        unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
+    )
+    inputs["participation_rate_mid"] = _make_slider(
+        st, "participation_rate_mid", default_inputs["participation_rate_mid"],
+        unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
+    )
+    inputs["participation_rate_high"] = _make_slider(
+        st, "participation_rate_high", default_inputs["participation_rate_high"],
+        unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
+    )
 
 # ===============================================================
 # SAVE TO SESSION STATE & CONVERT TYPES

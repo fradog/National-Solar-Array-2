@@ -101,7 +101,7 @@ def run_site_simulation(
     base_daily_kwh: float = 25.0,
     n_evs: int = 1,
     ev_cons: float = 310.0,
-    ev_daily_miles: float = 30.0,
+    ev_daily: float = 30.0,
     ev_chrg_max_I_home: int = 48,
 ):
     """Runs hourly pvfactors + CEC single-diode + seasonal load + racking LFP storage."""

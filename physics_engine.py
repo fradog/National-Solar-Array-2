@@ -93,9 +93,9 @@ def run_site_simulation(
     soc_min: float,
     soc_max: float,
     n_modules: int = 5,
-    n_columns: int = 3,
+    n_columns: int = 5,
     n_rows: int = 5,
-    dc_ac_ratio: float = 0.90,
+    dc_ac_ratio: float = 0.93,
     batt_eff: float = 0.90,
 ):
     """Runs hourly pvfactors + CEC single-diode + seasonal load + racking LFP storage."""

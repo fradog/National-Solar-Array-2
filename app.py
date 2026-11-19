@@ -275,7 +275,7 @@ st.sidebar.header("Simulation Parameters")
 base_daily_kwh = st.sidebar.slider("Base Daily Load (kWh)", 5.0, 60.0, 25.0, step=1.0)
 n_evs = st.sidebar.slider("Number of EVs", 0, 4, 1, step=1)
 ev_daily_miles = st.sidebar.slider("Daily EV Driving (miles)", 0, 100, 30, step=5)
-cooling_setpoint_c = st.sidebar.slider("Cooling Setpoint (°C)", 20.0, 30.0, 24.0, step=0.5)
+ev_chrg_max_I_home = st.sidebar.slider("Home Chargeport Max Current", 0, 60, 40, step=2)
 
 # 2. Pass the slider values into physics_engine.py
 results = run_simulation_slider_imports(

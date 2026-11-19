@@ -442,7 +442,7 @@ home_res = run_site_simulation(
     n_evs=n_evs,
     ev_cons=ev_cons,
     ev_daily=ev_daily,
-    ev_chrg_max_I_home=ev_chrg_max_I_home,
+    ev_chrg_max_I_home=ev_chrg_max_I_home
 )
 
 nat_res = run_site_simulation(
@@ -454,7 +454,7 @@ nat_res = run_site_simulation(
     n_evs=n_evs,
     ev_cons,
     ev_daily=ev_daily,
-    ev_chrg_max_I_home=ev_chrg_max_I_home,
+    ev_chrg_max_I_home=ev_chrg_max_I_home
 )
 
 scale_res = compute_national_scaleup(

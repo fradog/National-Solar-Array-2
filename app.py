@@ -274,7 +274,7 @@ st.sidebar.header("Simulation Parameters")
 base_daily_kwh = st.sidebar.slider("Base Daily Load (kWh)", 5.0, 60.0, 25.0, step=1.0)
 n_evs = st.sidebar.slider("Number of EVs", 0, 4, 1, step=1)
 ev_cons = st.sidebar.slider("EV EPA Combined Wh/mi)", 50.0, 400.0, 310.0, step=1.0)
-ev_daily_miles = st.sidebar.slider("Daily EV Driving (miles)", 0, 100, 30, step=5)
+ev_daily = st.sidebar.slider("Daily EV Driving (miles)", 0, 100, 30, step=5)
 ev_chrg_max_I_home = st.sidebar.slider("Home Chargeport Max Current", 0, 60, 40, step=2)
 
 

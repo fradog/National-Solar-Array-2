@@ -21,11 +21,12 @@ if "efficiency_upgrade" in sys.modules:
 #if "physics_engine" in sys.modules:
 #    importlib.reload(sys.modules["physics_engine"])
 
-from efficiency_upgrade import calculate_efficiency_upgrade
+from efficiency_upgrade import calculate_efficiency_upgrade 
 from physics_engine import (
     LOCATION_PRESETS,
     MODULE_SPECS,
     CELL_SPECS,
+    run_simulation_slider_imports,
     run_site_simulation,
     compute_national_scaleup,
 )
@@ -277,12 +278,13 @@ ev_daily_miles = st.sidebar.slider("Daily EV Driving (miles)", 0, 100, 30, step=
 cooling_setpoint_c = st.sidebar.slider("Cooling Setpoint (°C)", 20.0, 30.0, 24.0, step=0.5)
 
 # 2. Pass the slider values into physics_engine.py
-results = run_simulation_(
+results = run_simulation_slider_imports(
     base_daily_kwh=base_daily_kwh,
     n_evs=n_evs,
     ev_daily_miles=ev_daily_miles,
-    cooling_setpoint_c=cooling_setpoint_c,
+    ev_chrg_max_I_home=ev_chrg_max_I_home
 )
+
 # -------------------------------------------------
 # 3. Costs (PV + Racking Battery vs. Megapack)
 # -------------------------------------------------

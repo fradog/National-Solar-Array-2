@@ -42,12 +42,12 @@ from solar_model import (
 
 # --- PLOTLY LEGEND ABOVE CHART ---
 LEGEND_ABOVE = dict(
-    margin=dict(t=120),
+    margin=dict(t=150),
     legend=dict(
         title=None,
         orientation="h",
         yanchor="bottom",
-        y=1.05,
+        y=1.1,
         xanchor="center",
         x=0.5,
     ),

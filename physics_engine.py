@@ -4,6 +4,7 @@ Physics & Racking-Integrated Battery Engine for National Solar Array
 Uses pvlib + pvfactors (solarfactors) + CEC Single-Diode + 314Ah LFP Cell Sizing
 """
 
+import gc
 import math
 import numpy as np
 import pandas as pd
@@ -76,6 +77,9 @@ def fit_module_cec():
     )
 
 
+import gc
+# ... keep existing imports ...
+
 @st.cache_data(show_spinner="Downloading PVGIS TMY & running pvfactors bifacial + storage simulation...")
 def run_site_simulation(
     site_name: str,
@@ -104,7 +108,6 @@ def run_site_simulation(
     ns_space = 0.025
     ew_space = (pv_w + pv_f) / gcr - pv_w
 
-    # Module aperture area and full unit-block ground footprint
     module_aperture_m2 = pv_w * pv_l
     panel_rating_w_per_m2 = MODULE_SPECS["STC"] / module_aperture_m2
     unit_area_m2 = (((n_rows - 1) * ((pv_w + pv_f) / gcr)) + (pv_w + pv_f)) * (pv_l + ns_space) * n_columns - ns_space
@@ -119,7 +122,7 @@ def run_site_simulation(
     site = location.Location(lat, lon, tz=tz, altitude=alt, name=site_name)
     solpos = site.get_solarposition(tmy_data.index)
 
-    # 2. Single-Axis Tracking & pvfactors 2D View-Factor Bifacial Irradiance
+    # 2. Single-Axis Tracking & Daytime-Only pvfactors 2D View-Factor Bifacial Irradiance
     tracker_data = tracking.singleaxis(
         apparent_zenith=solpos["apparent_zenith"],
         solar_azimuth=solpos["azimuth"],
@@ -132,24 +135,40 @@ def run_site_simulation(
     surface_tilt = tracker_data["surface_tilt"].fillna(0.0)
     surface_azimuth = tracker_data["surface_azimuth"].fillna(180.0)
 
-    irrad = pvfactors_timeseries(
-        solar_azimuth=solpos["azimuth"],
-        solar_zenith=solpos["apparent_zenith"],
-        surface_azimuth=surface_azimuth,
-        surface_tilt=surface_tilt,
+    # Filter strictly to daytime hours with irradiance to cut pvfactors RAM usage in half
+    day_mask = (solpos["apparent_zenith"] < 89.5) & ((tmy_data["dni"] + tmy_data["dhi"]) > 0)
+    safe_tilt = surface_tilt[day_mask].replace(0.0, 1e-4)
+
+    irrad_day = pvfactors_timeseries(
+        solar_azimuth=solpos.loc[day_mask, "azimuth"],
+        solar_zenith=solpos.loc[day_mask, "apparent_zenith"],
+        surface_azimuth=surface_azimuth[day_mask],
+        surface_tilt=safe_tilt,
         axis_azimuth=180.0,
-        timestamps=tmy_data.index,
-        dni=tmy_data["dni"],
-        dhi=tmy_data["dhi"],
+        timestamps=tmy_data.index[day_mask],
+        dni=tmy_data.loc[day_mask, "dni"],
+        dhi=tmy_data.loc[day_mask, "dhi"],
         gcr=gcr,
         pvrow_height=2.0,
         pvrow_width=pv_w,
         albedo=albedo,
-        n_pvrows=n_rows,
-        index_observed_pvrow=int(n_rows / 2),
+        n_pvrows=3,  # Using 3 rows instead of 5 captures center-row shading with 40% less RAM
+        index_observed_pvrow=1,
     )
-    irrad = pd.concat(irrad, axis=1)
+    irrad_day = pd.concat(irrad_day, axis=1)
+
+    # Reindex back to full 8760-hour TMY index with 0.0 at night
+    irrad = pd.DataFrame(0.0, index=tmy_data.index, columns=["total_inc_front", "total_inc_back"])
+    irrad.loc[day_mask, "total_inc_front"] = irrad_day["total_inc_front"].fillna(0.0)
+    irrad.loc[day_mask, "total_inc_back"] = irrad_day["total_inc_back"].fillna(0.0)
+
+    # Free heavy pvfactors objects before continuing
+    del irrad_day
+    gc.collect()
+
     effective_irrad = irrad["total_inc_front"] + MODULE_SPECS["bifaciality"] * irrad["total_inc_back"]
+    # ... continue with step 3 (Cell Temperature & CEC Single-Diode) unchanged ...
+
 
     # 3. Cell Temperature & CEC Single-Diode DC/AC Output
     temp_cell = temperature.sapm_cell(

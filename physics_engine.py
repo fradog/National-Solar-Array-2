@@ -217,7 +217,7 @@ def run_site_simulation(
     ])
     base_weights /= base_weights.sum()
 
-    exact_hrs = min(24.0, EV_chrg_kwh / EV_CHRG_MAXKW_HOME)
+    exact_hrs = min(24.0, EV_chrg_kwh / ev_chrg_max_home)
     full_hrs = int(exact_hrs)
     partial_hr_fraction = exact_hrs - full_hrs
     

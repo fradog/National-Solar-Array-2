@@ -267,7 +267,7 @@ with st.sidebar.expander("System Scale & Lifespan", expanded=False):
     )
 
 # -------------------------------------------------
-# 2. System Scale & Lifespan
+# 2. System Scale & Lifespan EV Charging 
 # -------------------------------------------------
 st.sidebar.header("Simulation Parameters")
 

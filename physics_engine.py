@@ -80,6 +80,13 @@ def fit_module_cec():
 #import gc
 # ... keep existing imports ...
 
+def run_simulation_slider_imports(
+    base_daily_kwh=25.0,
+    n_evs=1,
+    ev_daily_miles=30.0,
+    ev_chrg_max_I_home=48
+)
+    
 @st.cache_data(show_spinner="Downloading PVGIS TMY & running pvfactors bifacial + storage simulation...")
 def run_site_simulation(
     site_name: str,
@@ -192,13 +199,13 @@ def run_site_simulation(
 
     # --- Seasonal Residential Load Profile ---
     
-    BASE_DAILY_KWH       = 21.0
-    EV_CONS              = 300          # Wh/mi
-    EV_DAILY             = 40           # mi
-    N_EVS                = 2            # EVs in household
-    EV_CHRG_MAXKW_HOME   = (240*48/1000)# Max charge rate at home
-    EV_chrg_kwh = EV_CONS * EV_DAILY * N_EVS / 1000
-    EV_wt_bump = EV_CHRG_MAXKW_HOME / BASE_DAILY_KWH
+    #BASE_DAILY_KWH       = 21.0
+    #EV_CONS              = 300          # Wh/mi
+    #EV_DAILY             = 40           # mi
+    #N_EVS                = 2            # EVs in household
+    ev_chrg_max_home    = (240 * ev_chrg_max_I_home / 1000) # Max charge rate at home
+    EV_chrg_kwh = ev_cons * ev_daily * n_evs / 1000
+    EV_wt_bump = ev_chrg_max_home / base_daily_kwh
 
     
     # --- Seasonal Residential Load Profile ---

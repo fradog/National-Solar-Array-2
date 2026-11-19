@@ -26,7 +26,6 @@ from physics_engine import (
     LOCATION_PRESETS,
     MODULE_SPECS,
     CELL_SPECS,
-    run_simulation_slider_imports,
     run_site_simulation,
     compute_national_scaleup,
 )
@@ -277,13 +276,6 @@ n_evs = st.sidebar.slider("Number of EVs", 0, 4, 1, step=1)
 ev_daily_miles = st.sidebar.slider("Daily EV Driving (miles)", 0, 100, 30, step=5)
 ev_chrg_max_I_home = st.sidebar.slider("Home Chargeport Max Current", 0, 60, 40, step=2)
 
-# 2. Pass the slider values into physics_engine.py
-results = run_simulation_slider_imports(
-    base_daily_kwh=base_daily_kwh,
-    n_evs=n_evs,
-    ev_daily_miles=ev_daily_miles,
-    ev_chrg_max_I_home=ev_chrg_max_I_home
-)
 
 # -------------------------------------------------
 # 3. Costs (PV + Racking Battery vs. Megapack)
@@ -445,6 +437,10 @@ home_res = run_site_simulation(
     lat=home_lat, lon=home_lon, tz=home_tz, alt=home_alt,
     albedo=home_albedo, gcr=gcr,
     storage_hours=home_storage_hours, soc_min=soc_min, soc_max=soc_max,
+    base_daily_kwh=base_daily_kwh,
+    n_evs=n_evs,
+    ev_daily_miles=ev_daily_miles,
+    ev_chrg_max_I_home=ev_chrg_max_I_home,
 )
 
 nat_res = run_site_simulation(
@@ -452,6 +448,10 @@ nat_res = run_site_simulation(
     lat=nat_lat, lon=nat_lon, tz=nat_tz, alt=nat_alt,
     albedo=nat_albedo, gcr=gcr,
     storage_hours=nat_storage_hours, soc_min=soc_min, soc_max=soc_max,
+    base_daily_kwh=base_daily_kwh,
+    n_evs=n_evs,
+    ev_daily_miles=ev_daily_miles,
+    ev_chrg_max_I_home=ev_chrg_max_I_home,
 )
 
 scale_res = compute_national_scaleup(

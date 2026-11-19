@@ -416,7 +416,7 @@ def calculate_metrics(inputs, cash_flows_df, bond_principal, project_lifespan=30
         'Total Interest Paid ($T)': total_interest_paid,
         'Total Dividends Paid ($T)': total_dividends_paid,
         'Debt Coverage Ratio Year 10': debt_coverage_ratio_year10,
-        'Final Reinvested943 Balance ($T)': final_reinvested_balance,
+        'Final Reinvested Balance ($T)': final_reinvested_balance,
         'Individual Bond Investor CAGR (%)': investor_cagr,
         'Individual Bond Investor IRR (%)': investor_irr,
         'Individual Bond Investor Ending Balance ($)': investor_ending_value

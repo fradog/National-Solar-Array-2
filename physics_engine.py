@@ -93,7 +93,7 @@ def run_site_simulation(
     soc_min: float,
     soc_max: float,
     n_modules: int = 5,
-    n_columns: int = 5,
+    n_columns: int = 3,
     n_rows: int = 5,
     dc_ac_ratio: float = 0.93,
     batt_eff: float = 0.90,
@@ -188,17 +188,38 @@ def run_site_simulation(
     iv_results = pvsystem.singlediode(*cec_params)
     dc_watts_unit = (iv_results["p_mp"] * n_modules * n_columns).fillna(0.0).clip(lower=0.0)
     ac_gen_kwh = (dc_watts_unit / 1000.0) * dc_ac_ratio
+    
+    EV_chrg_kwh = EV_CONS * EV_DAILY * N_EVS / 1000
+    EV_wt_bump = EV_CHRG_MAXKW_HOME / BASE_DAILY_KWH
 
-    # 4. Seasonal Residential Load Profile (Base + Summer AC + Winter Heat Pump w/ Carbon-Neutral Aux Cap)
+    
+    # --- Seasonal Residential Load Profile ---
     base_weights = np.array([
-        0.026, 0.023, 0.021, 0.021, 0.023, 0.032,
-        0.045, 0.054, 0.048, 0.037, 0.034, 0.034,
-        0.035, 0.035, 0.037, 0.041, 0.049, 0.061,
-        0.067, 0.065, 0.057, 0.047, 0.037, 0.031,
+        0.026, 0.023, 0.021, 0.021, 0.023, 0.032,  # 00:00 - 05:00
+        0.045, 0.054, 0.048, 0.037, 0.034, 0.034,  # 06:00 - 11:00
+        0.035, 0.035, 0.037, 0.041, 0.049, 0.061,  # 12:00 - 17:00
+        0.067, 0.065, 0.057, 0.047, 0.037, 0.031   # 18:00 - 23:00
     ])
     base_weights /= base_weights.sum()
-    base_load = pd.Series([21.0 * base_weights[h] for h in tmy_data.index.hour], index=tmy_data.index)
 
+    exact_hrs = min(24.0, EV_chrg_kwh / EV_CHRG_MAXKW_HOME)
+    full_hrs = int(exact_hrs)
+    partial_hr_fraction = exact_hrs - full_hrs
+    
+    start_hr = 23  # Example: 10:00 PM start
+    
+    # Apply full power bump to complete hours
+    full_indices = np.arange(start_hr, start_hr + full_hrs) % 24
+    base_weights[full_indices] += EV_wt_bump
+    
+    # Apply prorated bump to the final partial hour
+    if partial_hr_fraction > 0 and full_hrs < 24:
+        last_idx = (start_hr + full_hrs) % 24
+        base_weights[last_idx] += EV_wt_bump * partial_hr_fraction
+
+    
+    base_load = pd.Series([BASE_DAILY_KWH * base_weights[h] for h in tmy_data.index.hour], index=tmy_data.index)
+    
     ac_elec = np.zeros(len(tmy_data))
     hp_elec = np.zeros(len(tmy_data))
     aux_th = np.zeros(len(tmy_data))

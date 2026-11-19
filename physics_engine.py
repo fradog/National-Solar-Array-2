@@ -228,7 +228,7 @@ def run_site_simulation(
         base_weights[last_idx] += EV_wt_bump * partial_hr_fraction
 
     
-    base_load = pd.Series([BASE_DAILY_KWH * base_weights[h] for h in tmy_data.index.hour], index=tmy_data.index)
+    base_load = pd.Series([base_daily_kwh * base_weights[h] for h in tmy_data.index.hour], index=tmy_data.index)
     
     ac_elec = np.zeros(len(tmy_data))
     hp_elec = np.zeros(len(tmy_data))

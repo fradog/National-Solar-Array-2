@@ -188,7 +188,11 @@ def run_site_simulation(
     iv_results = pvsystem.singlediode(*cec_params)
     dc_watts_unit = (iv_results["p_mp"] * n_modules * n_columns).fillna(0.0).clip(lower=0.0)
     ac_gen_kwh = (dc_watts_unit / 1000.0) * dc_ac_ratio
-    
+
+    EV_CONS              = 300          # Wh/mi
+    EV_DAILY             = 40           # mi
+    N_EVS                = 2            # EVs in household
+    EV_CHRG_MAXKW_HOME   = (240*48/1000)# Max charge rate at home
     EV_chrg_kwh = EV_CONS * EV_DAILY * N_EVS / 1000
     EV_wt_bump = EV_CHRG_MAXKW_HOME / BASE_DAILY_KWH
 

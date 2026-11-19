@@ -49,7 +49,7 @@ LEGEND_ABOVE = dict(
         yanchor="bottom",
         y=1.05,
         xanchor="center",
-        x=1,
+        x=0.5,
     ),
     hovermode="x unified",
 )

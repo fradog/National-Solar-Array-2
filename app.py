@@ -269,7 +269,7 @@ with st.sidebar.expander("System Scale & Lifespan", expanded=False):
 # 2. System Scale & Lifespan EV Charging 
 # -------------------------------------------------
 with st.sidebar.expander("EV Charging Parameters", expanded=False):
-    inputs["Base Daily Load"] = st.sidebar.slider("Base Daily Load (kWh)", 5.0, 60.0, 25.0, step=1.0)
+    base_daily_kwh = st.sidebar.slider("Base Daily Load (kWh)", 5.0, 60.0, 25.0, step=1.0)
     
 
 # 1. Create sliders in app.py

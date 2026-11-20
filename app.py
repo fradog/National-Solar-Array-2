@@ -495,15 +495,15 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.image(
-        str(ASSETS_DIR / "driveway1.jpg"),
-        caption="Home Solar Array & Racking Concept",
+        str(ASSETS_DIR / "pergola.jpg"),
+        caption="2.1 kW DualAxis Tracking Home Pergola With Integrated Battery Storage",
         use_container_width=True,
     )
 
 with col2:
     st.image(
         str(ASSETS_DIR / "factory.jpg"),
-        caption="National Solar Array Concept",
+        caption="National Solar Array Fully Automated Production and Assembly on Location"
         use_container_width=True,
     )
 

@@ -21,6 +21,11 @@ if "efficiency_upgrade" in sys.modules:
 #if "physics_engine" in sys.modules:
 #    importlib.reload(sys.modules["physics_engine"])
 
+from pathlib import Path
+import streamlit as st
+ASSETS_DIR = Path(__file__).parent / "images"
+
+
 from efficiency_upgrade import calculate_efficiency_upgrade 
 from physics_engine import (
     LOCATION_PRESETS,
@@ -486,6 +491,22 @@ if validate_lcoe:
 # =============================================
 st.markdown("---")
 st.header("Solar System Description (Physics & Racking Storage)")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.image(
+        str(ASSETS_DIR / "home.png"),
+        caption="Home Solar Array & Racking Concept",
+        use_container_width=True,
+    )
+
+with col2:
+    st.image(
+        str(ASSETS_DIR / "factory.png"),
+        caption="National Solar Array Concept",
+        use_container_width=True,
+    )
+
 st.write(
     "<span style='font-size:0.85rem; font-style:italic;'>"
     "System sizing, capacity factor, and unit-block storage are dynamically calculated using PVGIS TMY weather, "

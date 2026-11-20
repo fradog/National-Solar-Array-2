@@ -503,7 +503,7 @@ with col1:
 with col2:
     st.image(
         str(ASSETS_DIR / "factory.jpg"),
-        caption="National Solar Array Fully Automated Production and Assembly on Location"
+        caption="National Solar Array Fully Automated Production and Assembly on Location",
         use_container_width=True,
     )
 

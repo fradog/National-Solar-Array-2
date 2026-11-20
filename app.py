@@ -23,7 +23,7 @@ if "efficiency_upgrade" in sys.modules:
 
 from pathlib import Path
 import streamlit as st
-ASSETS_DIR = Path(__file__).parent / "images"
+ASSETS_DIR = Path(__file__).parent / "Images"
 
 
 from efficiency_upgrade import calculate_efficiency_upgrade 

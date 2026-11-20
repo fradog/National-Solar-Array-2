@@ -495,7 +495,7 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.image(
-        str(ASSETS_DIR / "home.jpg"),
+        str(ASSETS_DIR / "driveway1.jpg"),
         caption="Home Solar Array & Racking Concept",
         use_container_width=True,
     )

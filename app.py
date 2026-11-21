@@ -680,6 +680,234 @@ else:
     st.metric("Unlevered Solar + Storage NPV", f"${unlevered_npv:+.2f}T")
 
 # =============================================
+# FACTORY LAYOUT BREAKDOWN AND SCALING
+# =============================================
+def render_factory_layout(
+    total_target_gw: float = 4600.0,
+    build_years: int = 10,
+    num_farms: int = 100,
+    ingot_diameter_in: int = 8,
+):
+    """
+    Renders the Vertically Integrated Solar Factory Layout & Footprint section.
+    Can be called inside a tab or expander in your main app.py, passing in
+    your existing sidebar parameters.
+    """
+    st.header("🏭 Colocated Vertically Integrated Factory Layout")
+    st.markdown(
+        "Each solar farm includes an on-site, rail-fed manufacturing facility that converts "
+        "raw polysilicon, glass, and aluminum directly into finished solar modules—eliminating "
+        "outbound long-haul module shipping."
+    )
+
+    # --- 1. Interactive / Dynamic Inputs (Defaults match your National Array baseline) ---
+    with st.expander("⚙️ Factory Sizing & Ingot Parameters", expanded=True):
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            target_gw = st.number_input(
+                "Total Array Target (GW)",
+                min_value=10.0,
+                max_value=20000.0,
+                value=float(total_target_gw),
+                step=100.0,
+            )
+        with col2:
+            years = st.number_input(
+                "Buildout Horizon (Years)",
+                min_value=1,
+                max_value=30,
+                value=int(build_years),
+                step=1,
+            )
+        with col3:
+            farms = st.number_input(
+                "Colocated Farms / Factories",
+                min_value=1,
+                max_value=500,
+                value=int(num_farms),
+                step=5,
+            )
+        with col4:
+            ingot_choice = st.selectbox(
+                "CZ Ingot Diameter",
+                options=[
+                    "8-inch (~200 mm) — ~28.75 MW/puller/yr",
+                    "12-inch (~300 mm) — ~40.0 MW/puller/yr",
+                ],
+                index=0 if ingot_diameter_in == 8 else 1,
+            )
+
+    # --- 2. Core Capacity & Scaling Math ---
+    annual_national_gw = target_gw / years
+    factory_annual_gw = annual_national_gw / farms
+    farm_total_gw = target_gw / farms
+    scale_factor = factory_annual_gw / 4.6  # Normalized to 4.6 GW/yr baseline
+
+    is_8_inch = "8-inch" in ingot_choice
+    mw_per_puller = 28.75 if is_8_inch else 40.0
+    pullers_needed = int(round((factory_annual_gw * 1000.0) / mw_per_puller))
+
+    # --- 3. Top-Level KPI Metrics ---
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric(
+        "Factory Annual Output",
+        f"{factory_annual_gw:.2f} GW/yr",
+        f"{farm_total_gw:.1f} GW per farm over {years} yrs",
+    )
+    m2.metric(
+        "Parallel CZ Ingot Lines",
+        f"{pullers_needed:,} pullers",
+        "8-in baseline" if is_8_inch else "12-in high-throughput",
+    )
+
+    # --- 4. Ingot Workshop Breakdown ---
+    # Per puller: ~7.6 m2 furnace body, ~64 m2 working bay, ~103 m2 w/ aisles & shaping
+    furnace_body_m2 = pullers_needed * 7.6
+    working_bay_m2 = pullers_needed * 64.0
+    ingot_workshop_m2 = pullers_needed * 103.125  # ~16,500 m2 at 160 pullers
+
+    # --- 5. Full Factory Zone Breakdown (Scaled to Factory Annual GW) ---
+    zones = [
+        {
+            "Zone": "1. Rail Receiving & Raw Material Silos",
+            "Key Processes": "Covered dual rail spur, polysilicon silos, solar glass, aluminum extrusions, EVA/backsheet, chemical tank farm",
+            "Ceiling Height": "12–14 m",
+            "Area_m2": 18400.0 * scale_factor,
+        },
+        {
+            "Zone": "2. Ingot Growth & Squaring (High-Bay)",
+            "Key Processes": f"{pullers_needed} CZ pullers, seed/tail cropping, cylindrical grinding, squaring saws",
+            "Ceiling Height": "16–18 m (High-Bay)",
+            "Area_m2": ingot_workshop_m2,
+        },
+        {
+            "Zone": "3. Wafering & Cleaning",
+            "Key Processes": "Diamond wire saws (DWS), degumming, automated optical inspection (AOI), ultrasonic cleaning",
+            "Ceiling Height": "8–10 m",
+            "Area_m2": 20700.0 * scale_factor,
+        },
+        {
+            "Zone": "4. Solar Cell Fab (Cleanroom)",
+            "Key Processes": "Texturing, diffusion/TOPCon/HJT deposition, laser doping, screen printing, firing, IV sorting",
+            "Ceiling Height": "8–10 m (+sub-fab)",
+            "Area_m2": 25300.0 * scale_factor,
+        },
+        {
+            "Zone": "5. Module Assembly & Field Dispatch",
+            "Key Processes": "Tabber-stringers, layup, vacuum laminators, framing, J-box potting, flash testing, direct-to-field loading",
+            "Ceiling Height": "8–10 m",
+            "Area_m2": 29900.0 * scale_factor,
+        },
+    ]
+
+    df_zones = pd.DataFrame(zones)
+    total_m2 = df_zones["Area_m2"].sum()
+    total_sqft = total_m2 * 10.7639
+    under_roof_acres = total_sqft / 43560.0
+    total_parcel_acres = under_roof_acres * 2.65  # Includes rail spurs, utility yard & marshaling
+
+    # Finish KPI metrics now that totals are computed
+    m3.metric(
+        "Building Under-Roof Area",
+        f"{total_m2:,.0f} m²",
+        f"{total_sqft:,.0f} sq ft ({under_roof_acres:.1f} acres)",
+    )
+    m4.metric(
+        "Total Industrial Parcel",
+        f"{total_parcel_acres:.0f} acres",
+        f"~{140 * scale_factor:.0f} MW continuous plant load",
+    )
+
+    # Format display table
+    df_display = pd.DataFrame(
+        {
+            "Factory Zone": df_zones["Zone"],
+            "Key Processes": df_zones["Key Processes"],
+            "Ceiling Height": df_zones["Ceiling Height"],
+            "Area (m²)": df_zones["Area_m2"].map(lambda x: f"{x:,.0f}"),
+            "Area (sq ft)": (df_zones["Area_m2"] * 10.7639).map(lambda x: f"{x:,.0f}"),
+            "Share (%)": (df_zones["Area_m2"] / total_m2 * 100.0).map(lambda x: f"{x:.1f}%"),
+        }
+    )
+
+    # Append Total Row
+    total_row = pd.DataFrame(
+        [
+            {
+                "Factory Zone": "TOTAL UNDER-ROOF FACILITY",
+                "Key Processes": "Full Polysilicon-to-Panel Vertically Integrated Line",
+                "Ceiling Height": "Step-down profile",
+                "Area (m²)": f"{total_m2:,.0f}",
+                "Area (sq ft)": f"{total_sqft:,.0f}",
+                "Share (%)": "100.0%",
+            }
+        ]
+    )
+    df_display = pd.concat([df_display, total_row], ignore_index=True)
+
+    st.subheader("📊 Building Footprint Breakdown (Per Factory)")
+    st.dataframe(df_display, use_container_width=True, hide_index=True)
+
+    # --- 6. Ingot Puller Detail Table ---
+    st.subheader("🔬 CZ Ingot Puller Hall Breakdown")
+    df_ingot = pd.DataFrame(
+        [
+            {
+                "Space Level": "Furnace Body Only",
+                "Dimensions / Allowance": "~2.3 m × 3.3 m (closed)",
+                "Area per Line": "7.6 m² (~82 sq ft)",
+                f"Total ({pullers_needed} Lines)": f"{furnace_body_m2:,.0f} m² ({furnace_body_m2 * 10.7639:,.0f} sq ft)",
+            },
+            {
+                "Space Level": "Complete Puller Bay",
+                "Dimensions / Allowance": "~8.0 m × 8.0 m (swing clearance, vacuum pumps, power cabinets, operator zone)",
+                "Area per Line": "64.0 m² (~690 sq ft)",
+                f"Total ({pullers_needed} Lines)": f"{working_bay_m2:,.0f} m² ({working_bay_m2 * 10.7639:,.0f} sq ft)",
+            },
+            {
+                "Space Level": "Full Ingot Workshop",
+                "Dimensions / Allowance": "Adds +60% for AGV/crane aisles, polysilicon prep & shared cropping/squaring saws",
+                "Area per Line": "103.1 m² (~1,110 sq ft)",
+                f"Total ({pullers_needed} Lines)": f"{ingot_workshop_m2:,.0f} m² ({ingot_workshop_m2 * 10.7639:,.0f} sq ft)",
+            },
+        ]
+    )
+    st.dataframe(df_ingot, use_container_width=True, hide_index=True)
+
+    # --- 7. Engineering & Site Layout Notes ---
+    st.subheader("🏗️ Linear Flow & Southwestern U.S. Site Strategy")
+    c1, c2 = st.columns(2)
+
+    with c1:
+        st.markdown(
+            f"""
+            **1. Linear Flow-Through Geometry (~{int(620 * (scale_factor**0.5))} m × {int(180 * (scale_factor**0.5))} m)**
+            * **West Edge — Dual Rail Spur (~{total_parcel_acres * 0.25:.1f} acres):** Parallel tracks allow continuous unloading of polysilicon chunks, quartz crucibles, and argon near the north CZ hall, while glass, aluminum frames, and encapsulants unload at the south module end.
+            * **Step-Down Roof Profile:** High-bay **16–18 m (52–60 ft)** ceilings are restricted to the Ingot Hall (to accommodate ~14.6 m open puller height + bridge cranes), stepping down to **8–10 m** for Wafering, Cell, and Module zones to slash desert cooling loads.
+            * **Cleanroom Isolation:** Wet diamond-wire sawing is isolated from the ISO Class 7/8 Cell Fab via positive-pressure airlocks.
+            """
+        )
+
+    with c2:
+        st.markdown(
+            f"""
+            **2. Direct-to-Field Dispatch & Utilities**
+            * **East Edge — Field Marshaling Yard (~{total_parcel_acres * 0.25:.1f} acres):** Replaces semi-truck loading docks with drive-through doors feeding an outdoor staging yard where flatbeds haul modules straight into the surrounding **{farm_total_gw:.1f} GW** solar array.
+            * **8-Inch vs. 12-Inch Trade-off:** Modern high-efficiency cells (M10 182 mm / G12 210 mm) require **250–300+ mm (10–12 in)** ingots. Switching from 8-inch to 12-inch pullers reduces your line count from **160** to **~115 pullers** per factory.
+            * **Utilities & Water:** Requires **~{140 * scale_factor:.0f} MW** continuous power and a **Zero-Liquid-Discharge (ZLD)** ultrapure water recycling plant for Southwestern desert operation.
+            """
+        )
+
+
+# --- Standalone Entry Point ---
+if __name__ == "__main__":
+    st.set_page_config(
+        page_title="National Solar Array — Factory Layout",
+        page_icon="🏭",
+        layout="wide",
+        )
+    render_factory_layout()
+# =============================================
 # BOND PRINCIPAL, KEY METRICS & FUNDING MIX
 # =============================================
 

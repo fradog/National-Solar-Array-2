@@ -331,7 +331,7 @@ with st.sidebar.expander("🏭 Factory CapEx & Carbon Parameters", expanded=Fals
 # -------------------------------------------------
 with st.sidebar.expander("Costs (PV & Racking Storage)", expanded=False):
     pv_cost_per_w = st.slider(
-        "Solar PV Cost ($/W DC)", 0.40, 2.50,
+        "Solar PV Cost ($/W DC)", 0.10, 1.50,
         _ss("pv_cost_per_w", default_inputs["pv_cost_per_w"]), 0.05, format="$%.2f"
     )
     racking_batt_cost_per_kwh = st.slider(

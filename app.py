@@ -464,6 +464,7 @@ st.session_state["home_preset"] = home_preset
 st.session_state["nat_preset"] = nat_preset
 st.session_state["gcr"] = gcr
 st.session_state["home_storage_hours"] = home_storage_hours
+pv_cost_per_w = module_bom_opex_per_wdc + automated_bos_per_wdc
 st.session_state["nat_storage_hours"] = nat_storage_hours
 st.session_state["soc_min"] = soc_min
 st.session_state["soc_max"] = soc_max
@@ -533,208 +534,6 @@ inputs["panel_rating"] = nat_res["panel_rating_w_per_m2"]
 inputs["coverage_ratio"] = gcr
 inputs["capital_cost_per_kwp"] = scale_res["blended_capex_per_kwp"]
 
-# =============================================
-# LCOE VALIDATION MODE
-# =============================================
-validate_lcoe = st.sidebar.checkbox("LCOE Validation Mode (Zero extras + Unlevered NPV)")
-if validate_lcoe:
-    for key in ["avoided_fuel_per_kwh", "carbon_tax_rate", "grid_maintenance_bn", "degradation_rate"]:
-        inputs[key] = 0.0
-    inputs["bond_interest_rate"] = 0.0
-    inputs["bond_term"] = 0
-
-# =============================================
-# NEW: SOLAR SYSTEM DESCRIPTION BLOCK
-# =============================================
-st.markdown("---")
-st.header("Solar System Description (Physics & Racking Storage)")
-col1, col2 = st.columns(2)
-
-with col1:
-    st.image(
-        str(ASSETS_DIR / "pergola.jpg"),
-        caption="2.1 kW DualAxis Tracking Home Pergola With Integrated Battery Storage",
-        use_container_width=True,
-    )
-
-with col2:
-    st.image(
-        str(ASSETS_DIR / "factory.jpg"),
-        caption="National Solar Array Fully Automated Production and Assembly on Location",
-        use_container_width=True,
-    )
-
-st.write(
-    "<span style='font-size:0.85rem; font-style:italic;'>"
-    "System sizing, capacity factor, and unit-block storage are dynamically calculated using PVGIS TMY weather, "
-"2D view-factor bifacial shading (pvfactors), and the CEC single-diode model."
-"",
-unsafe_allow_html=True,
-)
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Target National Capacity", f"{scale_res['target_capacity_gwp']:,.0f} GWp", f"{scale_res['total_panels']/1e9:.2f}B Panels")
-c2.metric("National Capacity Factor (AC)", f"{scale_res['capacity_factor_ac']*100:.2f}%", f"DC CF: {scale_res['capacity_factor_dc']*100:.2f}%")
-c3.metric("Panel Rating & Density", f"{nat_res['panel_rating_w']:.0f} W", f"{nat_res['panel_rating_w_per_m2']:.1f} W/m² (GCR {gcr:.2f})")
-c4.metric("Blended System CapEx", f"${scale_res['blended_capex_per_kwp']:,.0f}/kWp", f"PV ${pv_cost_per_w:.2f}/W + LFP ${racking_batt_cost_per_kwh:.0f}/kWh")
-c5, c6, c7, c8 = st.columns(4)
-c5.metric("National Land Footprint", f"{scale_res['total_area_sqmi']:,.0f} sq mi", f"{scale_res['square_side_miles']:.0f} mi × {scale_res['square_side_miles']:.0f} mi")
-c6.metric("Integrated LFP Storage", f"{scale_res['total_storage_gwh']:,.0f} GWh", f"{scale_res['total_cells_billions']:.2f}B × 314Ah Cells")
-c7.metric("Integrated vs. Megapack CapEx", f"${scale_res['total_capex_integrated_usd']/1e12:.2f}T", f"Saves ${scale_res['capex_savings_usd']/1e12:.2f}T vs. Megapack")
-c8.metric("Home Self-Sufficiency", f"{home_res['self_sufficiency']:.1f}%", f"{home_res['cells_per_unit']} cells ({home_res['batt_mass_kg']/home_res['total_rail_m']:.1f} kg/m rail)")
-with st.expander("Detailed Unit Block & Site Comparison Table", expanded=False):
-    comp_df = pd.DataFrame([
-    {
-    "Site": home_res["site_name"],
-    "Unit Array (kW DC)": round(home_res["nameplate_kw"], 2),
-    "Annual AC Yield (kWh)": round(home_res["annual_ac_kwh"], 0),
-    "AC Capacity Factor (%)": round(home_res["cf_ac"] * 100, 2),
-    "Avg Home Load (kWh/day)": round(home_res["avg_daily_kwh"], 1),
-    "Racking Battery (kWh)": round(home_res["actual_batt_kwh"], 2),
-    "314Ah Cells / Unit": home_res["cells_per_unit"],
-    "Cell Mass / Rail (kg/m)": round(home_res["batt_mass_kg"] / home_res["total_rail_m"], 2),
-    "Self-Sufficiency (%)": round(home_res["self_sufficiency"], 1),
-    },
-    {
-    "Site": nat_res["site_name"],
-    "Unit Array (kW DC)": round(nat_res["nameplate_kw"], 2),
-    "Annual AC Yield (kWh)": round(nat_res["annual_ac_kwh"], 0),
-    "AC Capacity Factor (%)": round(nat_res["cf_ac"] * 100, 2),
-    "Avg Home Load (kWh/day)": round(nat_res["avg_daily_kwh"], 1),
-    "Racking Battery (kWh)": round(nat_res["actual_batt_kwh"], 2),
-    "314Ah Cells / Unit": nat_res["cells_per_unit"],
-    "Cell Mass / Rail (kg/m)": round(nat_res["batt_mass_kg"] / nat_res["total_rail_m"], 2),
-    "Self-Sufficiency (%)": round(nat_res["self_sufficiency"], 1),
-    },
-    ])
-    st.dataframe(comp_df, use_container_width=True, hide_index=True)
-
-# --- Interactive Physics & Storage Plots ---
-
-with st.expander("Physics & Racking Battery Simulation Charts (Home vs. National Site)", expanded=True):
-    tab_yield, tab_july = st.tabs(["Monthly Yield & Bifacial Irradiance", "July 1–7 Battery SoC & Seasonal Load"])
-    
-    with tab_yield:
-        months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        m_home = home_res["dc_kwh_series"].groupby(home_res["dc_kwh_series"].index.month).sum()
-        m_nat = nat_res["dc_kwh_series"].groupby(nat_res["dc_kwh_series"].index.month).sum()
-        fig_phys = make_subplots(
-            rows=1, cols=2,
-            subplot_titles=("Monthly Unit Block DC Yield (kWh)", "Daily Avg Rear Bifacial Irradiance (W/m²)")
-        )
-        fig_phys.add_trace(go.Bar(x=months, y=m_home.values, name=home_res["site_name"], marker_color="steelblue"), row=1, col=1)
-        fig_phys.add_trace(go.Bar(x=months, y=m_nat.values, name=nat_res["site_name"], marker_color="darkorange"), row=1, col=1)
-        rear_home = home_res["irrad"]["total_inc_back"].resample("D").mean().values[:365]
-        rear_nat = nat_res["irrad"]["total_inc_back"].resample("D").mean().values[:365]
-        fig_phys.add_trace(go.Scatter(x=list(range(1, 366)), y=rear_home, name=f"{home_res['site_name']} Rear", line=dict(color="steelblue")), row=1, col=2)
-        fig_phys.add_trace(go.Scatter(x=list(range(1, 366)), y=rear_nat, name=f"{nat_res['site_name']} Rear", line=dict(color="darkorange")), row=1, col=2)
-        fig_phys.update_layout(height=400, barmode="group", **LEGEND_ABOVE)
-        st.plotly_chart(fig_phys, use_container_width=True)
-
-    with tab_july:
-        fig_july = make_subplots(
-            rows=2, cols=2,
-            subplot_titles=(
-                f"Battery SoC (%) – {home_res['site_name']}",
-                f"Battery SoC (%) – {nat_res['site_name']}",
-                f"Load & Solar AC Gen (kWh) – {home_res['site_name']}",
-                f"Load & Solar AC Gen (kWh) – {nat_res['site_name']}",
-            )
-        )
-        for col_idx, res in enumerate([home_res, nat_res], start=1):
-            mask = (res["tmy"].index.month == 7) & (res["tmy"].index.day <= 7)
-            hr_axis = list(range(mask.sum()))
-            fig_july.add_trace(go.Scatter(x=hr_axis, y=res["soc"][mask].values, name=f"{res['site_name']} SoC", line=dict(color="purple")), row=1, col=col_idx)
-            fig_july.add_hline(y=soc_max * 100, line_dash="dash", line_color="red", row=1, col=col_idx)
-            fig_july.add_hline(y=soc_min * 100, line_dash="dash", line_color="orange", row=1, col=col_idx)
-            fig_july.add_trace(go.Scatter(x=hr_axis, y=res["base_load"][mask].values, name="Base Load", stackgroup="load", line=dict(color="steelblue")), row=2, col=col_idx)
-            fig_july.add_trace(go.Scatter(x=hr_axis, y=res["ac_elec"][mask].values, name="Summer AC", stackgroup="load", line=dict(color="firebrick")), row=2, col=col_idx)
-            fig_july.add_trace(go.Scatter(x=hr_axis, y=res["ac_gen_kwh"][mask].values, name="Solar AC Gen", line=dict(color="goldenrod", width=2)), row=2, col=col_idx)
-
-        fig_july.update_yaxes(range=[0, 100], row=1, col=1)
-        fig_july.update_yaxes(range=[0, 100], row=1, col=2)
-        fig_july.update_layout(height=550, showlegend=False)
-        st.plotly_chart(fig_july, use_container_width=True)
-
-# =============================================
-# FINANCIAL & BOND CALCULATIONS (solar_model.py)
-# =============================================
-
-annual_energy_goal, required_area = target_total_energy(inputs)
-bond_principal, carbon_tax_10yr = calculate_bond_principal(inputs)
-cash_flows_df = calculate_cash_flows(inputs, bond_principal, project_lifespan=inputs["project_lifespan"])
-cash_flows_df["Cumulative Post-Debt Cash Flow ($B)"] = cash_flows_df["Cash Flow Post-Debt ($B)"].cumsum()
-funding_mix_df = calculate_funding_mix(inputs, bond_principal)
-metrics = calculate_metrics(inputs, cash_flows_df, bond_principal)
-final_energy_twh = cash_flows_df.loc[cash_flows_df["Year"] == inputs["project_lifespan"], "Energy Yield (TWh)"].iloc[0]
-energy_gap = final_energy_twh - target_energy_twh
-st.markdown("---")
-st.header("System Size & Energy Target Reconciliation")
-st.write(
-f""
-f"The size of the solar system represented here is that which is required to replace fossil fueled energy in 2023, {mix_inputs['total_energy_quads']:.2f} quads ({mix_inputs['total_energy_quads'] * 293.07:,.0f} TWh). "
-f"The existing other renewables and nuclear as of 2023 remain as is over the lifetime of the system."
-f"",
-unsafe_allow_html=True,
-)
-st.write(f"Target Annual Energy: {target_energy_twh:,.0f} TWh")
-st.write(f"System Annual Energy (Year {inputs['project_lifespan']} post-degradation): {final_energy_twh:,.0f} TWh")
-st.write(f"Area Required: {scale_res['total_area_sqmi']:,.0f} sq mi (GCR: {gcr:.2f})")
-st.metric(
-"Energy Gap (Target vs. Array Energy Output at Full Capacity incl. degradation)",
-f"{energy_gap:,.2f} TWh",
-delta=f"{(energy_gap / target_energy_twh)*100:+.1f}%",
-)
-
-# LCOE
-
-lcoe_full = calculate_lcoe_simple(inputs)
-nrel_lcoe = calculate_lcoe_nrel_style(
-capex_per_kw=inputs["capital_cost_per_kwp"],
-fom_per_kw_yr=inputs["capital_cost_per_kwp"] * inputs["om_rate"],
-cf=inputs["capacity_factor"],
-wacc_real=inputs["discount_rate"],
-project_life=inputs["project_lifespan"],
-)
-
-# UNLEVERED NPV
-
-lifespan = inputs["project_lifespan"]
-target_kw = inputs["target_capacity"]
-init_kw = inputs["initial_capacity"]
-capex_per_kw = inputs["capital_cost_per_kwp"]
-om_rate = inputs["om_rate"]
-cf = inputs["capacity_factor"]
-hours = cf * 8760
-annual_add_kw = (target_kw - init_kw) / 10
-capex_series = np.array([annual_add_kw * capex_per_kw if yr < 10 else 0 for yr in range(lifespan)])
-om_series = np.zeros(lifespan)
-cum_kw = init_kw
-for yr in range(lifespan):
-    if yr < 10:
-        cum_kw += annual_add_kw
-    om_series[yr] = cum_kw * capex_per_kw * om_rate
-
-energy_series = np.array([
-    min(init_kw + annual_add_kw * min(yr + 1, 10), target_kw) * hours
-    for yr in range(lifespan)
-])
-revenue_series = energy_series * inputs["revenue_per_kwh"]
-unlevered_cf = revenue_series - capex_series - om_series
-unlevered_npv = npf.npv(inputs["discount_rate"], unlevered_cf) / 1e12
-st.markdown("---")
-st.subheader("Levelized Cost of Energy (LCOE)")
-col1, col2 = st.columns(2)
-with col1:
-    st.metric("Your Model (PV + Racking LFP Storage + Degradation)", f"${lcoe_full['LCOE ($/MWh)']:.2f}/MWh")
-    st.caption(f"→ {lcoe_full['LCOE ($/MWh)']/1000:.6f} $/kWh")
-with col2:
-    delta = nrel_lcoe - lcoe_full["LCOE ($/MWh)"]
-    st.metric("NREL ATB Style (FCR, no Degradation)", f"${nrel_lcoe:.2f}/MWh", f"{delta:+.2f} $/MWh", delta_color="inverse")
-if validate_lcoe:
-    inputs["revenue_per_kwh"] = lcoe_full["LCOE ($/MWh)"] / 1000
-    st.success(f"Validation Mode ON: Revenue = LCOE → Unlevered NPV = ${unlevered_npv:+.3f}T")
-else:
-    st.metric("Unlevered Solar + Storage NPV", f"${unlevered_npv:+.2f}T")
 
 # =============================================
 # FACTORY LAYOUT BREAKDOWN AND SCALING
@@ -1051,6 +850,15 @@ def render_factory_layout(
     
 factory_fin = render_factory_layout()
 
+# Update pv_cost_per_w with the calculated factory & carbon costs
+pv_cost_per_w = (
+    module_bom_opex_per_wdc
+    + automated_bos_per_wdc
+    + factory_fin["amortized_capex_per_wdc"]
+    + factory_fin["capture_cost_per_wdc"]
+)
+st.session_state["pv_cost_per_w"] = pv_cost_per_w
+
 solar_pv_cost_per_wdc = (
     module_bom_opex_per_wdc
     + factory_fin["amortized_capex_per_wdc"]
@@ -1069,6 +877,211 @@ st.metric(
         f"Auto-BOS ${automated_bos_per_wdc:.2f}"
     ),
 )
+
+
+
+# =============================================
+# LCOE VALIDATION MODE
+# =============================================
+validate_lcoe = st.sidebar.checkbox("LCOE Validation Mode (Zero extras + Unlevered NPV)")
+if validate_lcoe:
+    for key in ["avoided_fuel_per_kwh", "carbon_tax_rate", "grid_maintenance_bn", "degradation_rate"]:
+        inputs[key] = 0.0
+    inputs["bond_interest_rate"] = 0.0
+    inputs["bond_term"] = 0
+
+# =============================================
+# NEW: SOLAR SYSTEM DESCRIPTION BLOCK
+# =============================================
+st.markdown("---")
+st.header("Solar System Description (Physics & Racking Storage)")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.image(
+        str(ASSETS_DIR / "pergola.jpg"),
+        caption="2.1 kW DualAxis Tracking Home Pergola With Integrated Battery Storage",
+        use_container_width=True,
+    )
+
+with col2:
+    st.image(
+        str(ASSETS_DIR / "factory.jpg"),
+        caption="National Solar Array Fully Automated Production and Assembly on Location",
+        use_container_width=True,
+    )
+
+st.write(
+    "<span style='font-size:0.85rem; font-style:italic;'>"
+    "System sizing, capacity factor, and unit-block storage are dynamically calculated using PVGIS TMY weather, "
+"2D view-factor bifacial shading (pvfactors), and the CEC single-diode model."
+"",
+unsafe_allow_html=True,
+)
+c1, c2, c3, c4 = st.columns(4)
+c1.metric("Target National Capacity", f"{scale_res['target_capacity_gwp']:,.0f} GWp", f"{scale_res['total_panels']/1e9:.2f}B Panels")
+c2.metric("National Capacity Factor (AC)", f"{scale_res['capacity_factor_ac']*100:.2f}%", f"DC CF: {scale_res['capacity_factor_dc']*100:.2f}%")
+c3.metric("Panel Rating & Density", f"{nat_res['panel_rating_w']:.0f} W", f"{nat_res['panel_rating_w_per_m2']:.1f} W/m² (GCR {gcr:.2f})")
+c4.metric("Blended System CapEx", f"${scale_res['blended_capex_per_kwp']:,.0f}/kWp", f"PV ${pv_cost_per_w:.2f}/W + LFP ${racking_batt_cost_per_kwh:.0f}/kWh")
+c5, c6, c7, c8 = st.columns(4)
+c5.metric("National Land Footprint", f"{scale_res['total_area_sqmi']:,.0f} sq mi", f"{scale_res['square_side_miles']:.0f} mi × {scale_res['square_side_miles']:.0f} mi")
+c6.metric("Integrated LFP Storage", f"{scale_res['total_storage_gwh']:,.0f} GWh", f"{scale_res['total_cells_billions']:.2f}B × 314Ah Cells")
+c7.metric("Integrated vs. Megapack CapEx", f"${scale_res['total_capex_integrated_usd']/1e12:.2f}T", f"Saves ${scale_res['capex_savings_usd']/1e12:.2f}T vs. Megapack")
+c8.metric("Home Self-Sufficiency", f"{home_res['self_sufficiency']:.1f}%", f"{home_res['cells_per_unit']} cells ({home_res['batt_mass_kg']/home_res['total_rail_m']:.1f} kg/m rail)")
+with st.expander("Detailed Unit Block & Site Comparison Table", expanded=False):
+    comp_df = pd.DataFrame([
+    {
+    "Site": home_res["site_name"],
+    "Unit Array (kW DC)": round(home_res["nameplate_kw"], 2),
+    "Annual AC Yield (kWh)": round(home_res["annual_ac_kwh"], 0),
+    "AC Capacity Factor (%)": round(home_res["cf_ac"] * 100, 2),
+    "Avg Home Load (kWh/day)": round(home_res["avg_daily_kwh"], 1),
+    "Racking Battery (kWh)": round(home_res["actual_batt_kwh"], 2),
+    "314Ah Cells / Unit": home_res["cells_per_unit"],
+    "Cell Mass / Rail (kg/m)": round(home_res["batt_mass_kg"] / home_res["total_rail_m"], 2),
+    "Self-Sufficiency (%)": round(home_res["self_sufficiency"], 1),
+    },
+    {
+    "Site": nat_res["site_name"],
+    "Unit Array (kW DC)": round(nat_res["nameplate_kw"], 2),
+    "Annual AC Yield (kWh)": round(nat_res["annual_ac_kwh"], 0),
+    "AC Capacity Factor (%)": round(nat_res["cf_ac"] * 100, 2),
+    "Avg Home Load (kWh/day)": round(nat_res["avg_daily_kwh"], 1),
+    "Racking Battery (kWh)": round(nat_res["actual_batt_kwh"], 2),
+    "314Ah Cells / Unit": nat_res["cells_per_unit"],
+    "Cell Mass / Rail (kg/m)": round(nat_res["batt_mass_kg"] / nat_res["total_rail_m"], 2),
+    "Self-Sufficiency (%)": round(nat_res["self_sufficiency"], 1),
+    },
+    ])
+    st.dataframe(comp_df, use_container_width=True, hide_index=True)
+
+# --- Interactive Physics & Storage Plots ---
+
+with st.expander("Physics & Racking Battery Simulation Charts (Home vs. National Site)", expanded=True):
+    tab_yield, tab_july = st.tabs(["Monthly Yield & Bifacial Irradiance", "July 1–7 Battery SoC & Seasonal Load"])
+    
+    with tab_yield:
+        months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        m_home = home_res["dc_kwh_series"].groupby(home_res["dc_kwh_series"].index.month).sum()
+        m_nat = nat_res["dc_kwh_series"].groupby(nat_res["dc_kwh_series"].index.month).sum()
+        fig_phys = make_subplots(
+            rows=1, cols=2,
+            subplot_titles=("Monthly Unit Block DC Yield (kWh)", "Daily Avg Rear Bifacial Irradiance (W/m²)")
+        )
+        fig_phys.add_trace(go.Bar(x=months, y=m_home.values, name=home_res["site_name"], marker_color="steelblue"), row=1, col=1)
+        fig_phys.add_trace(go.Bar(x=months, y=m_nat.values, name=nat_res["site_name"], marker_color="darkorange"), row=1, col=1)
+        rear_home = home_res["irrad"]["total_inc_back"].resample("D").mean().values[:365]
+        rear_nat = nat_res["irrad"]["total_inc_back"].resample("D").mean().values[:365]
+        fig_phys.add_trace(go.Scatter(x=list(range(1, 366)), y=rear_home, name=f"{home_res['site_name']} Rear", line=dict(color="steelblue")), row=1, col=2)
+        fig_phys.add_trace(go.Scatter(x=list(range(1, 366)), y=rear_nat, name=f"{nat_res['site_name']} Rear", line=dict(color="darkorange")), row=1, col=2)
+        fig_phys.update_layout(height=400, barmode="group", **LEGEND_ABOVE)
+        st.plotly_chart(fig_phys, use_container_width=True)
+
+    with tab_july:
+        fig_july = make_subplots(
+            rows=2, cols=2,
+            subplot_titles=(
+                f"Battery SoC (%) – {home_res['site_name']}",
+                f"Battery SoC (%) – {nat_res['site_name']}",
+                f"Load & Solar AC Gen (kWh) – {home_res['site_name']}",
+                f"Load & Solar AC Gen (kWh) – {nat_res['site_name']}",
+            )
+        )
+        for col_idx, res in enumerate([home_res, nat_res], start=1):
+            mask = (res["tmy"].index.month == 7) & (res["tmy"].index.day <= 7)
+            hr_axis = list(range(mask.sum()))
+            fig_july.add_trace(go.Scatter(x=hr_axis, y=res["soc"][mask].values, name=f"{res['site_name']} SoC", line=dict(color="purple")), row=1, col=col_idx)
+            fig_july.add_hline(y=soc_max * 100, line_dash="dash", line_color="red", row=1, col=col_idx)
+            fig_july.add_hline(y=soc_min * 100, line_dash="dash", line_color="orange", row=1, col=col_idx)
+            fig_july.add_trace(go.Scatter(x=hr_axis, y=res["base_load"][mask].values, name="Base Load", stackgroup="load", line=dict(color="steelblue")), row=2, col=col_idx)
+            fig_july.add_trace(go.Scatter(x=hr_axis, y=res["ac_elec"][mask].values, name="Summer AC", stackgroup="load", line=dict(color="firebrick")), row=2, col=col_idx)
+            fig_july.add_trace(go.Scatter(x=hr_axis, y=res["ac_gen_kwh"][mask].values, name="Solar AC Gen", line=dict(color="goldenrod", width=2)), row=2, col=col_idx)
+
+        fig_july.update_yaxes(range=[0, 100], row=1, col=1)
+        fig_july.update_yaxes(range=[0, 100], row=1, col=2)
+        fig_july.update_layout(height=550, showlegend=False)
+        st.plotly_chart(fig_july, use_container_width=True)
+
+# =============================================
+# FINANCIAL & BOND CALCULATIONS (solar_model.py)
+# =============================================
+
+annual_energy_goal, required_area = target_total_energy(inputs)
+bond_principal, carbon_tax_10yr = calculate_bond_principal(inputs)
+cash_flows_df = calculate_cash_flows(inputs, bond_principal, project_lifespan=inputs["project_lifespan"])
+cash_flows_df["Cumulative Post-Debt Cash Flow ($B)"] = cash_flows_df["Cash Flow Post-Debt ($B)"].cumsum()
+funding_mix_df = calculate_funding_mix(inputs, bond_principal)
+metrics = calculate_metrics(inputs, cash_flows_df, bond_principal)
+final_energy_twh = cash_flows_df.loc[cash_flows_df["Year"] == inputs["project_lifespan"], "Energy Yield (TWh)"].iloc[0]
+energy_gap = final_energy_twh - target_energy_twh
+st.markdown("---")
+st.header("System Size & Energy Target Reconciliation")
+st.write(
+f""
+f"The size of the solar system represented here is that which is required to replace fossil fueled energy in 2023, {mix_inputs['total_energy_quads']:.2f} quads ({mix_inputs['total_energy_quads'] * 293.07:,.0f} TWh). "
+f"The existing other renewables and nuclear as of 2023 remain as is over the lifetime of the system."
+f"",
+unsafe_allow_html=True,
+)
+st.write(f"Target Annual Energy: {target_energy_twh:,.0f} TWh")
+st.write(f"System Annual Energy (Year {inputs['project_lifespan']} post-degradation): {final_energy_twh:,.0f} TWh")
+st.write(f"Area Required: {scale_res['total_area_sqmi']:,.0f} sq mi (GCR: {gcr:.2f})")
+st.metric(
+"Energy Gap (Target vs. Array Energy Output at Full Capacity incl. degradation)",
+f"{energy_gap:,.2f} TWh",
+delta=f"{(energy_gap / target_energy_twh)*100:+.1f}%",
+)
+
+# LCOE
+
+lcoe_full = calculate_lcoe_simple(inputs)
+nrel_lcoe = calculate_lcoe_nrel_style(
+capex_per_kw=inputs["capital_cost_per_kwp"],
+fom_per_kw_yr=inputs["capital_cost_per_kwp"] * inputs["om_rate"],
+cf=inputs["capacity_factor"],
+wacc_real=inputs["discount_rate"],
+project_life=inputs["project_lifespan"],
+)
+
+# UNLEVERED NPV
+
+lifespan = inputs["project_lifespan"]
+target_kw = inputs["target_capacity"]
+init_kw = inputs["initial_capacity"]
+capex_per_kw = inputs["capital_cost_per_kwp"]
+om_rate = inputs["om_rate"]
+cf = inputs["capacity_factor"]
+hours = cf * 8760
+annual_add_kw = (target_kw - init_kw) / 10
+capex_series = np.array([annual_add_kw * capex_per_kw if yr < 10 else 0 for yr in range(lifespan)])
+om_series = np.zeros(lifespan)
+cum_kw = init_kw
+for yr in range(lifespan):
+    if yr < 10:
+        cum_kw += annual_add_kw
+    om_series[yr] = cum_kw * capex_per_kw * om_rate
+
+energy_series = np.array([
+    min(init_kw + annual_add_kw * min(yr + 1, 10), target_kw) * hours
+    for yr in range(lifespan)
+])
+revenue_series = energy_series * inputs["revenue_per_kwh"]
+unlevered_cf = revenue_series - capex_series - om_series
+unlevered_npv = npf.npv(inputs["discount_rate"], unlevered_cf) / 1e12
+st.markdown("---")
+st.subheader("Levelized Cost of Energy (LCOE)")
+col1, col2 = st.columns(2)
+with col1:
+    st.metric("Your Model (PV + Racking LFP Storage + Degradation)", f"${lcoe_full['LCOE ($/MWh)']:.2f}/MWh")
+    st.caption(f"→ {lcoe_full['LCOE ($/MWh)']/1000:.6f} $/kWh")
+with col2:
+    delta = nrel_lcoe - lcoe_full["LCOE ($/MWh)"]
+    st.metric("NREL ATB Style (FCR, no Degradation)", f"${nrel_lcoe:.2f}/MWh", f"{delta:+.2f} $/MWh", delta_color="inverse")
+if validate_lcoe:
+    inputs["revenue_per_kwh"] = lcoe_full["LCOE ($/MWh)"] / 1000
+    st.success(f"Validation Mode ON: Revenue = LCOE → Unlevered NPV = ${unlevered_npv:+.3f}T")
+else:
+    st.metric("Unlevered Solar + Storage NPV", f"${unlevered_npv:+.2f}T")
 
 
 # =============================================

@@ -681,9 +681,10 @@ else:
 
 # =============================================
 # FACTORY LAYOUT BREAKDOWN AND SCALING
-# =============================================
+# ============================================
+
 def render_factory_layout(
-    total_target_gw: scale_res["target_capacity_kwp"],
+    total_target_gw: float = 4600.0,
     build_years: int = 10,
     num_farms: int = 100,
     ingot_diameter_in: int = 8,

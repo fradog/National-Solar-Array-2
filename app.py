@@ -894,6 +894,99 @@ def render_factory_layout(
             * **Utilities & Water:** Requires **~{140 * scale_factor:.0f} MW** continuous power and a **Zero-Liquid-Discharge (ZLD)** ultrapure water recycling plant for Southwestern desert operation.
             """
         )
+    # --- 8. Factory CO2 Emissions & Abatement Strategies ---
+    st.subheader("🌍 Factory CO₂ Emissions & Carbon Abatement Strategies")
+    st.markdown(
+        "Because CZ ingot pullers, wafer saws, and cell lines are electric rather than fuel-burning, "
+        "on-site factory emissions are **Scope 2 (grid electricity)** while raw polysilicon, glass, "
+        "and aluminum carry **Scope 3 (upstream material)** embodied carbon."
+    )
+
+    c_em1, c_em2, c_em3 = st.columns(3)
+    with c_em1:
+        power_strategy = st.selectbox(
+            "Factory Power Source (Scope 2)",
+            options=[
+                "SW U.S. Grid Mix (~0.38 kg CO₂/kWh)",
+                "Self-Powered via Dedicated On-Site Solar (~0.00 kg CO₂/kWh)",
+                "50% On-Site Solar / 50% Grid (~0.19 kg CO₂/kWh)",
+            ],
+            index=0,
+        )
+    with c_em2:
+        include_scope3 = st.checkbox(
+            "Include Upstream Raw Materials (Scope 3)",
+            value=True,
+            help="Includes polysilicon refining, solar glass melting, and aluminum frame smelting (~280 kg CO₂/kWp).",
+        )
+    with c_em3:
+        abatement_strategy = st.selectbox(
+            "Carbon Capture / Removal Strategy",
+            options=[
+                "None (Unabated Emissions)",
+                "Industrial CCS Offsets ($65/ton CO₂)",
+                "Direct Air Capture / DAC ($600/ton CO₂)",
+            ],
+            index=1,
+        )
+
+    # Grid carbon intensity (kg CO2 / kWh)
+    if "Self-Powered" in power_strategy:
+        grid_kg_per_kwh = 0.0
+    elif "50%" in power_strategy:
+        grid_kg_per_kwh = 0.19
+    else:
+        grid_kg_per_kwh = 0.38
+
+    # Factory electricity demand: ~140 MW continuous per 4.6 GW/yr = ~266.6 kWh per kWp produced
+    kwh_per_kwp_produced = (140.0 * 1000.0 * 8760.0) / (4.6 * 1_000_000.0)
+    scope2_kg_per_kwp = kwh_per_kwp_produced * grid_kg_per_kwh
+    scope3_kg_per_kwp = 280.0 if include_scope3 else 0.0
+    total_kg_per_kwp = scope2_kg_per_kwp + scope3_kg_per_kwp
+
+    # Annual and 10-year emissions (Metric Tons CO2)
+    single_factory_annual_tons = (factory_annual_gw * 1_000_000.0 * total_kg_per_kwp) / 1000.0
+    all_factories_annual_tons = single_factory_annual_tons * farms
+    total_buildout_millions_tons = (all_factories_annual_tons * years) / 1_000_000.0
+
+    # Carbon capture / removal cost ($/ton CO2)
+    if "Industrial CCS" in abatement_strategy:
+        capture_cost_per_ton = 65.0
+    elif "Direct Air Capture" in abatement_strategy:
+        capture_cost_per_ton = 600.0
+    else:
+        capture_cost_per_ton = 0.0
+
+    total_capture_cost_usd = (all_factories_annual_tons * years) * capture_cost_per_ton
+    capture_cost_per_wdc = total_capture_cost_usd / (target_gw * 1_000_000_000.0)
+
+    # Carbon payback time when installed in the Southwestern U.S. (~2,100 kWh/kWp/yr)
+    sw_yield_kwh_per_kwp = 2100.0
+    avoided_kg_per_kwp_yr = sw_yield_kwh_per_kwp * 0.38
+    carbon_payback_months = (total_kg_per_kwp / avoided_kg_per_kwp_yr) * 12.0
+
+    # Display KPI Metrics
+    m_co1, m_co2, m_co3, m_co4 = st.columns(4)
+    m_co1.metric(
+        "Embodied Carbon Intensity",
+        f"{total_kg_per_kwp:,.0f} kg CO₂/kWp",
+        f"Scope 2: {scope2_kg_per_kwp:.0f} | Scope 3: {scope3_kg_per_kwp:.0f} kg",
+    )
+    m_co2.metric(
+        "Annual Emissions (All Factories)",
+        f"{all_factories_annual_tons / 1e6:,.1f}M tons/yr",
+        f"{single_factory_annual_tons / 1e3:,.0f}k tons/yr per factory",
+    )
+    m_co3.metric(
+        f"{years}-Year Buildout Carbon Debt",
+        f"{total_buildout_millions_tons:,.1f}M tons",
+        f"Paid back in ~{carbon_payback_months:.1f} months of solar operation",
+    )
+    m_co4.metric(
+        "Carbon Capture / Offset Cost",
+        f"${total_capture_cost_usd / 1e9:,.1f}B",
+        f"+${capture_cost_per_wdc:.4f}/Wdc added module cost",
+    )
 
 render_factory_layout()
 # =============================================

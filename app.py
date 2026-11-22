@@ -272,7 +272,7 @@ with st.sidebar.expander("System Scale & Lifespan", expanded=False):
     base_daily_kwh = st.slider("Base Daily Residential Load (kWh)", 5.0, 60.0, 25.0, step=1.0)
 
 # -------------------------------------------------
-# 2. System Scale & Lifespan EV Charging 
+# 3. System Scale & Lifespan EV Charging 
 # -------------------------------------------------
 with st.sidebar.expander("EV Charging Parameters", expanded=False):
     n_evs = st.slider("Number of EVs", 0, 4, 1, step=1)
@@ -280,9 +280,55 @@ with st.sidebar.expander("EV Charging Parameters", expanded=False):
     ev_daily = st.slider("Daily EV Driving (miles)", 0, 100, 30, step=5)
     ev_chrg_max_I_home = st.slider("Home Chargeport Max Current", 0, 60, 40, step=2)
 
+# -------------------------------------------------
+# 4. Factory Carbon & Abatement 
+# -------------------------------------------------
+
+with st.sidebar.expander("🌍 Factory Carbon & Abatement", expanded=False):
+    grid_kg_per_kwh = st.slider(
+        "Grid Carbon Intensity (kg CO₂/kWh)",
+        min_value=0.00,
+        max_value=0.80,
+        value=0.38,
+        step=0.01,
+        help="0.00 = 100% self-powered on-site solar; 0.38 = SW U.S. grid average.",
+    )
+    factory_mw_per_46gw = st.slider(
+        "Factory Power Load (MW per 4.6 GW/yr)",
+        min_value=80.0,
+        max_value=220.0,
+        value=140.0,
+        step=5.0,
+        help="Continuous electrical draw for CZ pullers, cell furnaces, and chillers (~267 kWh/kWp).",
+    )
+    scope3_kg_per_kwp = st.slider(
+        "Upstream Material Carbon — Scope 3 (kg CO₂/kWp)",
+        min_value=0.0,
+        max_value=500.0,
+        value=280.0,
+        step=10.0,
+        help="Embodied carbon in polysilicon, solar glass, and aluminum frames (0 = exclude Scope 3).",
+    )
+    capture_cost_per_ton = st.slider(
+        "Carbon Capture / Removal Cost ($/ton CO₂)",
+        min_value=0.0,
+        max_value=800.0,
+        value=65.0,
+        step=5.0,
+        help="$0 = unabated; ~$65/ton = industrial CCS offsets; ~$600/ton = Direct Air Capture (DAC).",
+    )
+    sw_yield_kwh_per_kwp = st.slider(
+        "SW U.S. Solar Yield (kWh/kWp/yr)",
+        min_value=1400.0,
+        max_value=2600.0,
+        value=2100.0,
+        step=50.0,
+        help="Used to calculate how many months it takes the installed panels to pay back their carbon debt.",
+    )
+
 
 # -------------------------------------------------
-# 3. Costs (PV + Racking Battery vs. Megapack)
+# 5. Costs (PV + Racking Battery vs. Megapack)
 # -------------------------------------------------
 with st.sidebar.expander("Costs (PV & Racking Storage)", expanded=False):
     pv_cost_per_w = st.slider(
@@ -307,7 +353,7 @@ with st.sidebar.expander("Costs (PV & Racking Storage)", expanded=False):
     )
 
 # -------------------------------------------------
-# 4. Revenue & Savings
+# 6. Revenue & Savings
 # -------------------------------------------------
 with st.sidebar.expander("Revenue & Savings", expanded=False):
     inputs["revenue_per_kwh"] = _make_slider(
@@ -336,7 +382,7 @@ with st.sidebar.expander("Revenue & Savings", expanded=False):
     )
 
 # -------------------------------------------------
-# 5. Reinvestment
+# 7. Reinvestment
 # -------------------------------------------------
 with st.sidebar.expander("Reinvestment", expanded=False):
     inputs["reinvestment_percentage"] = _make_slider(
@@ -353,7 +399,7 @@ with st.sidebar.expander("Reinvestment", expanded=False):
     )
 
 # -------------------------------------------------
-# 6. Bond Financing
+# 8. Bond Financing
 # -------------------------------------------------
 with st.sidebar.expander("Bond Financing", expanded=False):
     us_adpop_default = int(default_inputs["us_adult_population"] / 1_000_000)
@@ -894,76 +940,37 @@ def render_factory_layout(
             * **Utilities & Water:** Requires **~{140 * scale_factor:.0f} MW** continuous power and a **Zero-Liquid-Discharge (ZLD)** ultrapure water recycling plant for Southwestern desert operation.
             """
         )
+
     # --- 8. Factory CO2 Emissions & Abatement Strategies ---
-    st.subheader("🌍 Factory CO₂ Emissions & Carbon Abatement Strategies")
+    st.subheader("🌍 Factory CO₂ Emissions & Carbon Abatement")
     st.markdown(
         "Because CZ ingot pullers, wafer saws, and cell lines are electric rather than fuel-burning, "
-        "on-site factory emissions are **Scope 2 (grid electricity)** while raw polysilicon, glass, "
-        "and aluminum carry **Scope 3 (upstream material)** embodied carbon."
+        "on-site factory emissions are **Scope 2 (electricity)** while raw polysilicon, glass, "
+        "and aluminum carry **Scope 3 (upstream material)** embodied carbon. "
+        "*(Adjust assumptions in the **🌍 Factory Carbon & Abatement** sidebar section.)*"
     )
 
-    c_em1, c_em2, c_em3 = st.columns(3)
-    with c_em1:
-        power_strategy = st.selectbox(
-            "Factory Power Source (Scope 2)",
-            options=[
-                "SW U.S. Grid Mix (~0.38 kg CO₂/kWh)",
-                "Self-Powered via Dedicated On-Site Solar (~0.00 kg CO₂/kWh)",
-                "50% On-Site Solar / 50% Grid (~0.19 kg CO₂/kWh)",
-            ],
-            index=0,
-        )
-    with c_em2:
-        include_scope3 = st.checkbox(
-            "Include Upstream Raw Materials (Scope 3)",
-            value=True,
-            help="Includes polysilicon refining, solar glass melting, and aluminum frame smelting (~280 kg CO₂/kWp).",
-        )
-    with c_em3:
-        abatement_strategy = st.selectbox(
-            "Carbon Capture / Removal Strategy",
-            options=[
-                "None (Unabated Emissions)",
-                "Industrial CCS Offsets ($65/ton CO₂)",
-                "Direct Air Capture / DAC ($600/ton CO₂)",
-            ],
-            index=1,
-        )
-
-    # Grid carbon intensity (kg CO2 / kWh)
-    if "Self-Powered" in power_strategy:
-        grid_kg_per_kwh = 0.0
-    elif "50%" in power_strategy:
-        grid_kg_per_kwh = 0.19
-    else:
-        grid_kg_per_kwh = 0.38
-
-    # Factory electricity demand: ~140 MW continuous per 4.6 GW/yr = ~266.6 kWh per kWp produced
-    kwh_per_kwp_produced = (140.0 * 1000.0 * 8760.0) / (4.6 * 1_000_000.0)
+    # Factory electricity demand (kWh per kWp produced) & Scope 2 + 3 intensity
+    kwh_per_kwp_produced = (factory_mw_per_46gw * 1000.0 * 8760.0) / (4.6 * 1_000_000.0)
     scope2_kg_per_kwp = kwh_per_kwp_produced * grid_kg_per_kwh
-    scope3_kg_per_kwp = 280.0 if include_scope3 else 0.0
     total_kg_per_kwp = scope2_kg_per_kwp + scope3_kg_per_kwp
 
-    # Annual and 10-year emissions (Metric Tons CO2)
+    # Annual and buildout totals (Metric Tons CO2)
     single_factory_annual_tons = (factory_annual_gw * 1_000_000.0 * total_kg_per_kwp) / 1000.0
     all_factories_annual_tons = single_factory_annual_tons * farms
     total_buildout_millions_tons = (all_factories_annual_tons * years) / 1_000_000.0
 
-    # Carbon capture / removal cost ($/ton CO2)
-    if "Industrial CCS" in abatement_strategy:
-        capture_cost_per_ton = 65.0
-    elif "Direct Air Capture" in abatement_strategy:
-        capture_cost_per_ton = 600.0
-    else:
-        capture_cost_per_ton = 0.0
-
+    # Carbon capture / removal costs
     total_capture_cost_usd = (all_factories_annual_tons * years) * capture_cost_per_ton
     capture_cost_per_wdc = total_capture_cost_usd / (target_gw * 1_000_000_000.0)
 
-    # Carbon payback time when installed in the Southwestern U.S. (~2,100 kWh/kWp/yr)
-    sw_yield_kwh_per_kwp = 2100.0
+    # Carbon payback time (compared against SW U.S. grid displacement of 0.38 kg CO2/kWh)
     avoided_kg_per_kwp_yr = sw_yield_kwh_per_kwp * 0.38
-    carbon_payback_months = (total_kg_per_kwp / avoided_kg_per_kwp_yr) * 12.0
+    carbon_payback_months = (
+        (total_kg_per_kwp / avoided_kg_per_kwp_yr) * 12.0
+        if avoided_kg_per_kwp_yr > 0
+        else 0.0
+    )
 
     # Display KPI Metrics
     m_co1, m_co2, m_co3, m_co4 = st.columns(4)
@@ -980,14 +987,14 @@ def render_factory_layout(
     m_co3.metric(
         f"{years}-Year Buildout Carbon Debt",
         f"{total_buildout_millions_tons:,.1f}M tons",
-        f"Paid back in ~{carbon_payback_months:.1f} months of solar operation",
+        f"Paid back in ~{carbon_payback_months:.1f} months of operation",
     )
     m_co4.metric(
         "Carbon Capture / Offset Cost",
         f"${total_capture_cost_usd / 1e9:,.1f}B",
         f"+${capture_cost_per_wdc:.4f}/Wdc added module cost",
     )
-
+    
 render_factory_layout()
 # =============================================
 # BOND PRINCIPAL, KEY METRICS & FUNDING MIX

@@ -682,9 +682,9 @@ else:
 # =============================================
 # FACTORY LAYOUT BREAKDOWN AND SCALING
 # ============================================
-
+total_target_gw = scale_res[total_target_kwp] / 1000000000
 def render_factory_layout(
-    total_target_gw: float = 4600.0,
+    total_target_gw: total_target_gw,
     build_years: int = 10,
     num_farms: int = 100,
     ingot_diameter_in: int = 8,
@@ -899,7 +899,7 @@ def render_factory_layout(
             """
         )
 
-
+"""
 # --- Standalone Entry Point ---
 if __name__ == "__main__":
     st.set_page_config(
@@ -907,7 +907,8 @@ if __name__ == "__main__":
         page_icon="🏭",
         layout="wide",
         )
-    render_factory_layout()
+"""
+render_factory_layout()
 # =============================================
 # BOND PRINCIPAL, KEY METRICS & FUNDING MIX
 # =============================================

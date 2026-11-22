@@ -710,13 +710,12 @@ def render_factory_layout(
     with st.expander("⚙️ Factory Sizing & Ingot Parameters", expanded=True):
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            target_gw = st.number_input(
-                "Total Array Target (GW)",
-                min_value=10.0,
-                max_value=20000.0,
-                value=float(total_target_gw),
-                step=100.0,
+            target_gw = float(total_target_gw)
+            st.metric(
+                label="Total Array Target (GW)",
+                value=f"{target_gw:,.1f} GW",
             )
+
         with col2:
             years = st.number_input(
                 "Buildout Horizon (Years)",

@@ -284,7 +284,15 @@ with st.sidebar.expander("EV Charging Parameters", expanded=False):
 # 4. Factory Carbon & Abatement 
 # -------------------------------------------------
 
-with st.sidebar.expander("🌍 Factory Carbon & Abatement", expanded=False):
+with st.sidebar.expander("🏭 Factory CapEx & Carbon Parameters", expanded=False):
+    capex_per_kw_yr = st.slider(
+        "Greenfield Factory CapEx ($/kW-yr capacity)",
+        min_value=150.0,
+        max_value=450.0,
+        value=280.0,
+        step=10.0,
+        help="Includes greenfield building, cleanrooms, CZ pullers, DWS, cell lines, and module assembly.",
+    )
     grid_kg_per_kwh = st.slider(
         "Grid Carbon Intensity (kg CO₂/kWh)",
         min_value=0.00,
@@ -317,15 +325,6 @@ with st.sidebar.expander("🌍 Factory Carbon & Abatement", expanded=False):
         step=5.0,
         help="$0 = unabated; ~$65/ton = industrial CCS offsets; ~$600/ton = Direct Air Capture (DAC).",
     )
-    sw_yield_kwh_per_kwp = st.slider(
-        "SW U.S. Solar Yield (kWh/kWp/yr)",
-        min_value=1400.0,
-        max_value=2600.0,
-        value=2100.0,
-        step=50.0,
-        help="Used to calculate how many months it takes the installed panels to pay back their carbon debt.",
-    )
-
 
 # -------------------------------------------------
 # 5. Costs (PV + Racking Battery vs. Megapack)
@@ -940,15 +939,47 @@ def render_factory_layout(
             * **Utilities & Water:** Requires **~{140 * scale_factor:.0f} MW** continuous power and a **Zero-Liquid-Discharge (ZLD)** ultrapure water recycling plant for Southwestern desert operation.
             """
         )
+    
+    # --- 8. Factory Capital Expenditure (CapEx) ---
+    st.subheader("💰 Factory Capital Expenditure (CapEx)")
+    single_factory_capex_usd = factory_annual_gw * 1_000_000.0 * capex_per_kw_yr
+    total_factories_capex_usd = single_factory_capex_usd * farms
+    amortized_capex_per_wdc = total_factories_capex_usd / (target_gw * 1_000_000_000.0)
 
-    # --- 8. Factory CO2 Emissions & Abatement Strategies ---
+    c_cap1, c_cap2, c_cap3 = st.columns(3)
+    c_cap1.metric(
+        "CapEx per Factory",
+        f"${single_factory_capex_usd / 1e9:.2f}B",
+        f"For {factory_annual_gw:.2f} GW/yr plant (@ ${capex_per_kw_yr:.0f}/kW-yr)",
+    )
+    c_cap2.metric(
+        f"Total CapEx ({farms} Factories)",
+        f"${total_factories_capex_usd / 1e9:.1f}B",
+        "Upfront manufacturing buildout",
+    )
+    c_cap3.metric(
+        "Amortized Factory Cost",
+        f"${amortized_capex_per_wdc:.3f}/Wdc",
+        f"${amortized_capex_per_wdc * 1000:.2f}/kWdc over {years} yrs",
+    )
+
+    # --- 9. Factory CO2 Emissions & Abatement Strategies ---
     st.subheader("🌍 Factory CO₂ Emissions & Carbon Abatement")
     st.markdown(
-        "Because CZ ingot pullers, wafer saws, and cell lines are electric rather than fuel-burning, "
-        "on-site factory emissions are **Scope 2 (electricity)** while raw polysilicon, glass, "
+        "On-site factory emissions are **Scope 2 (electricity)** while raw polysilicon, glass, "
         "and aluminum carry **Scope 3 (upstream material)** embodied carbon. "
-        "*(Adjust assumptions in the **🌍 Factory Carbon & Abatement** sidebar section.)*"
+        "*(Adjust assumptions in the **🏭 Factory CapEx & Carbon Parameters** sidebar section.)*"
     )
+
+    # Pull specific solar yield (kWh/kWp/yr) directly from physics_engine scale_res
+    if "specific_yield_kwh_kwp" in scale_res:
+        physics_yield_kwh_per_kwp = float(scale_res["specific_yield_kwh_kwp"])
+    elif "annual_energy_kwh" in scale_res and float(scale_res["target_capacity_kwp"]) > 0:
+        physics_yield_kwh_per_kwp = float(scale_res["annual_energy_kwh"]) / float(scale_res["target_capacity_kwp"])
+    elif "annual_gen_twh" in scale_res and target_gw > 0:
+        physics_yield_kwh_per_kwp = (float(scale_res["annual_gen_twh"]) * 1e9) / (target_gw * 1e6)
+    else:
+        physics_yield_kwh_per_kwp = 2100.0  # Fallback only if yield key isn't in scale_res
 
     # Factory electricity demand (kWh per kWp produced) & Scope 2 + 3 intensity
     kwh_per_kwp_produced = (factory_mw_per_46gw * 1000.0 * 8760.0) / (4.6 * 1_000_000.0)
@@ -964,15 +995,14 @@ def render_factory_layout(
     total_capture_cost_usd = (all_factories_annual_tons * years) * capture_cost_per_ton
     capture_cost_per_wdc = total_capture_cost_usd / (target_gw * 1_000_000_000.0)
 
-    # Carbon payback time (compared against SW U.S. grid displacement of 0.38 kg CO2/kWh)
-    avoided_kg_per_kwp_yr = sw_yield_kwh_per_kwp * 0.38
+    # Carbon payback time using physics_engine yield & 0.38 kg CO2/kWh displaced grid mix
+    avoided_kg_per_kwp_yr = physics_yield_kwh_per_kwp * 0.38
     carbon_payback_months = (
         (total_kg_per_kwp / avoided_kg_per_kwp_yr) * 12.0
         if avoided_kg_per_kwp_yr > 0
         else 0.0
     )
 
-    # Display KPI Metrics
     m_co1, m_co2, m_co3, m_co4 = st.columns(4)
     m_co1.metric(
         "Embodied Carbon Intensity",
@@ -987,13 +1017,25 @@ def render_factory_layout(
     m_co3.metric(
         f"{years}-Year Buildout Carbon Debt",
         f"{total_buildout_millions_tons:,.1f}M tons",
-        f"Paid back in ~{carbon_payback_months:.1f} months of operation",
+        f"Paid back in ~{carbon_payback_months:.1f} mos (@ {physics_yield_kwh_per_kwp:,.0f} kWh/kWp)",
     )
     m_co4.metric(
         "Carbon Capture / Offset Cost",
         f"${total_capture_cost_usd / 1e9:,.1f}B",
         f"+${capture_cost_per_wdc:.4f}/Wdc added module cost",
     )
+
+    return {
+        "single_factory_capex_usd": single_factory_capex_usd,
+        "total_factories_capex_usd": total_factories_capex_usd,
+        "amortized_capex_per_wdc": amortized_capex_per_wdc,
+        "total_capture_cost_usd": total_capture_cost_usd,
+        "capture_cost_per_wdc": capture_cost_per_wdc,
+        "total_buildout_tons_co2": all_factories_annual_tons * years,
+        "factory_annual_gw": factory_annual_gw,
+        "total_plant_mw": factory_mw_per_46gw * scale_factor * farms,
+    }
+
     
 render_factory_layout()
 # =============================================

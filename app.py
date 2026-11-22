@@ -293,6 +293,14 @@ with st.sidebar.expander("🏭 Factory CapEx & Carbon Parameters", expanded=Fals
         step=10.0,
         help="Includes greenfield building, cleanrooms, CZ pullers, DWS, cell lines, and module assembly.",
     )
+    module_bom_opex_per_wdc = st.slider(
+        "Module Raw Materials & Factory OpEx ($/Wdc)",
+        min_value=0.06,
+        max_value=0.25,
+        value=0.12,
+        step=0.01,
+        help="Polysilicon, solar glass, aluminum, silver paste, encapsulants, and factory O&M.",
+    )
     grid_kg_per_kwh = st.slider(
         "Grid Carbon Intensity (kg CO₂/kWh)",
         min_value=0.00,
@@ -330,9 +338,13 @@ with st.sidebar.expander("🏭 Factory CapEx & Carbon Parameters", expanded=Fals
 # 5. Costs (PV + Racking Battery vs. Megapack)
 # -------------------------------------------------
 with st.sidebar.expander("Costs (PV & Racking Storage)", expanded=False):
-    pv_cost_per_w = st.slider(
-        "Solar PV Cost ($/W DC)", 0.10, 1.50,
-        _ss("pv_cost_per_w", default_inputs["pv_cost_per_w"]), 0.05, format="$%.2f"
+    automated_bos_per_wdc = st.slider(
+    "Automated Field Balance of System ($/Wdc)",
+    min_value=0.15,
+    max_value=1.00,
+    value=0.45,
+    step=0.05,
+    help="Runners, automated field 'printer' assembly machines, plug-and-play racking, inverters, and site prep.",
     )
     racking_batt_cost_per_kwh = st.slider(
         "Racking-Integrated LFP Cost ($/kWh)", 40.0, 200.0,
@@ -1037,7 +1049,28 @@ def render_factory_layout(
     }
 
     
-render_factory_layout()
+factory_fin = render_factory_layout()
+
+solar_pv_cost_per_wdc = (
+    module_bom_opex_per_wdc
+    + factory_fin["amortized_capex_per_wdc"]
+    + factory_fin["capture_cost_per_wdc"]
+    + automated_bos_per_wdc
+)
+
+# Optional read-only summary metric showing the live bottom-up total
+st.metric(
+    "Total Installed Solar PV Cost ($/Wdc)",
+    f"${solar_pv_cost_per_wdc:.3f}/Wdc",
+    (
+        f"Factory CapEx ${factory_fin['amortized_capex_per_wdc']:.3f} + "
+        f"BOM/OpEx ${module_bom_opex_per_wdc:.2f} + "
+        f"CO₂ ${factory_fin['capture_cost_per_wdc']:.3f} + "
+        f"Auto-BOS ${automated_bos_per_wdc:.2f}"
+    ),
+)
+
+
 # =============================================
 # BOND PRINCIPAL, KEY METRICS & FUNDING MIX
 # =============================================

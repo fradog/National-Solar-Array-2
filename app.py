@@ -682,13 +682,18 @@ else:
 # =============================================
 # FACTORY LAYOUT BREAKDOWN AND SCALING
 # ============================================
-total_target_gw = scale_res["target_capacity_kwp"] / 1000000000
+
 def render_factory_layout(
-    total_target_gw: total_target_gw,
     build_years: int = 10,
     num_farms: int = 100,
     ingot_diameter_in: int = 8,
 ):
+    # Calculate fresh from scale_res every time the function runs (kWp -> GW)
+    total_target_gw = float(scale_res["target_capacity_kwp"]) / 1_000_000.0
+
+    st.header("🏭 Colocated Vertically Integrated Factory Layout")
+    # ... rest of your code uses total_target_gw ...
+
     """
     Renders the Vertically Integrated Solar Factory Layout & Footprint section.
     Can be called inside a tab or expander in your main app.py, passing in
@@ -899,15 +904,6 @@ def render_factory_layout(
             """
         )
 
-"""
-# --- Standalone Entry Point ---
-if __name__ == "__main__":
-    st.set_page_config(
-        page_title="National Solar Array — Factory Layout",
-        page_icon="🏭",
-        layout="wide",
-        )
-"""
 render_factory_layout()
 # =============================================
 # BOND PRINCIPAL, KEY METRICS & FUNDING MIX

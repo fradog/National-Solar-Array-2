@@ -682,7 +682,7 @@ else:
 # =============================================
 # FACTORY LAYOUT BREAKDOWN AND SCALING
 # ============================================
-total_target_gw = scale_res[total_target_kwp] / 1000000000
+total_target_gw = scale_res[target_capacity_kwp] / 1000000000
 def render_factory_layout(
     total_target_gw: total_target_gw,
     build_years: int = 10,

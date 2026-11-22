@@ -692,14 +692,6 @@ def render_factory_layout(
     total_target_gw = float(scale_res["target_capacity_kwp"]) / 1_000_000.0
 
     st.header("🏭 Colocated Vertically Integrated Factory Layout")
-    # ... rest of your code uses total_target_gw ...
-
-    """
-    Renders the Vertically Integrated Solar Factory Layout & Footprint section.
-    Can be called inside a tab or expander in your main app.py, passing in
-    your existing sidebar parameters.
-    """
-    st.header("🏭 Colocated Vertically Integrated Factory Layout")
     st.markdown(
         "Each solar farm includes an on-site, rail-fed manufacturing facility that converts "
         "raw polysilicon, glass, and aluminum directly into finished solar modules—eliminating "

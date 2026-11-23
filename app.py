@@ -72,12 +72,17 @@ st.markdown(
     Eliminating carbon-emitting energy generation is an urgent imperative—and incremental deployment will not get us there in time. This model demonstrates how a national solar-plus-storage buildout, deployed an order of magnitude faster and larger than conventional plans, can realistically drive the U.S. to Net Zero CO₂ emissions by ~2035–2037. Funded through bonds or federal appropriations, this scale delivers true energy independence and leaves no community behind—generating revenues at current electricity prices that far exceed total buildout costs.
     </div>
 
-    <div style="font-size: 0.85rem; font-style: italic; line-height: 1.55; margin-bottom: 1rem;">
+    <div style="font-size: 0.85rem; font-style: italic; line-height: 1.55; margin-bottom: 0.75rem;">
     Beyond decarbonization, this infrastructure serves as a sovereign fiscal engine capable of transforming federal finances and household take-home pay. By using the electricity price lever across ~9,660 TWh of annual clean generation, the array can retire the entire ~$32.8 trillion publicly held National Debt over 20 to 30 years while permanently funding 100% of U.S. National Defense (~$1.05T/yr) and Social Security (~$1.65T/yr) at ~$0.44–$0.50/kWh—or fund Defense and Social Security indefinitely at ~$0.33/kWh once the debt is cleared. Shifting those ~$2.70 trillion in annual obligations off income taxes and paycheck FICA withholdings translates to roughly $16,800 per year in tax relief per tax filer (~$7,740 per U.S. resident), leaving working families thousands of dollars ahead each year even after accounting for electricity pricing.
+    </div>
+
+    <div style="font-size: 0.85rem; font-style: italic; line-height: 1.55; margin-bottom: 1rem;">
+    Crucially, executing this buildout as a unified national undertaking yields vastly superior financial returns compared to fragmented private commercial development. Operating at the industrial scale and urgency of a national war effort unlocks massive learning-curve and supply-chain economies while stripping away layers of convoluted project-finance fees, tax-equity middlemen, and commercial insurance markups. By replacing slow, fragmented public-private utility monopolies with a vertically integrated, first-principles engineering organization—operating with the speed, cost discipline, and technical execution of SpaceX—capital flows directly into physical hardware and gigawatts rather than bureaucratic overhead.
     </div>
     """,
     unsafe_allow_html=True,
 )
+
 
 
 # =============================================

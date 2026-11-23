@@ -869,15 +869,6 @@ def render_factory_layout(
     
 factory_fin = render_factory_layout(build_years=build_years)
 
-# Update pv_cost_per_w with the calculated factory & carbon costs
-pv_cost_per_w = (
-    module_bom_opex_per_wdc
-    + automated_bos_per_wdc
-    + factory_fin["amortized_capex_per_wdc"]
-    + factory_fin["capture_cost_per_wdc"]
-)
-st.session_state["pv_cost_per_w"] = pv_cost_per_w
-
 solar_pv_cost_per_wdc = (
     module_bom_opex_per_wdc
     + factory_fin["amortized_capex_per_wdc"]

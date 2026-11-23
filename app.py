@@ -133,18 +133,18 @@ def show_fiscal_math_modal():
             step=5,
         )
     with col_s2:
-        sr = st.session_state.get("scale_res", {"target_capacity_kwp": 4600e6, "capacity_factor": 0.24})
+        sr = st.session_state.get("scale_res", {"target_capacity_kwp": 4600e6, "capacity_factor_ac": 0.24})
         live_capacity_gw = float(sr["target_capacity_kwp"]) / 1_000_000.0
-
-        raw_cf = float(sr.get("capacity_factor", 0.24))
+        
+        raw_cf = float(sr["capacity_factor_ac"])
         live_cf = raw_cf / 100.0 if raw_cf > 1.0 else raw_cf
-
+        
         annual_twh = (live_capacity_gw * 8760.0 * live_cf) / 1000.0
-
+        
         st.metric(
             label="Annual Clean Generation (From Physics Engine)",
             value=f"{annual_twh:,.0f} TWh/yr",
-            delta=f"{live_capacity_gw:,.0f} GW @ {live_cf * 100:.1f}% CF",
+            delta=f"{live_capacity_gw:,.0f} GW @ {live_cf * 100:.1f}% AC CF",
         )
 
 

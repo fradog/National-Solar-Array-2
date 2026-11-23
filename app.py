@@ -911,6 +911,42 @@ st.metric(
     ),
 )
 
+# --- U.S. Commercial Utility Benchmark Comparison ---
+st.subheader("📊 Capital Savings vs. Commercial U.S. Utility Benchmarks")
+
+target_watts_dc = float(scale_res["target_capacity_kwp"]) * 1000.0
+us_commercial_pv_benchmark_wdc = 1.20          # DOE/SEIA U.S. utility tracking PV (~$1.12-$1.32/Wdc)
+us_commercial_pv_storage_benchmark_wdc = 1.76  # DOE U.S. utility PV + 4-hr storage (~$1.71-$1.81/Wdc)
+
+# Your live model PV-only vs. combined PV+Storage $/Wdc
+your_pv_wdc = float(pv_cost_per_w)
+# Uses your total_capex_usd if defined, or adds battery CapEx if stored separately
+your_combined_wdc = (
+    total_capex_usd / target_watts_dc
+    if "total_capex_usd" in locals()
+    else your_pv_wdc
+)
+
+pv_capex_savings_trillions = ((us_commercial_pv_benchmark_wdc - your_pv_wdc) * target_watts_dc) / 1e12
+combined_capex_savings_trillions = ((us_commercial_pv_storage_benchmark_wdc - your_combined_wdc) * target_watts_dc) / 1e12
+
+b1, b2, b3 = st.columns(3)
+b1.metric(
+    "Your PV Cost vs. U.S. Utility ($1.20/Wdc)",
+    f"${your_pv_wdc:.3f}/Wdc",
+    f"-${us_commercial_pv_benchmark_wdc - your_pv_wdc:.3f}/Wdc ({((us_commercial_pv_benchmark_wdc - your_pv_wdc) / us_commercial_pv_benchmark_wdc) * 100:.0f}% cheaper)",
+)
+b2.metric(
+    "PV-Only CapEx Saved vs. Commercial",
+    f"${pv_capex_savings_trillions:,.2f} Trillion",
+    f"Across {target_watts_dc / 1e9:,.0f} GWdc buildout",
+)
+b3.metric(
+    "Combined PV + Storage vs. U.S. Utility ($1.76/Wdc)",
+    f"${your_combined_wdc:.3f}/Wdc",
+    f"Saves ${combined_capex_savings_trillions:,.2f}T total CapEx",
+)
+
 
 
 # =============================================

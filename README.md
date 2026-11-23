@@ -2,7 +2,7 @@
 
 **A financial and energy modeling tool demonstrating that a massive U.S. solar + storage array can achieve Net Zero by ~2035–2037 with strong economic returns, energy independence, and broad public participation.**
 
-[Live Demo (Streamlit)](https://national-solar-array-ouuqzyhcvnqsmfbmy5cxnm.streamlit.app/) *(replace with actual link after deployment)*
+[Live Demo (Streamlit)](https://national-solar-array-ouuqzyhcvnqsmfbmy5cxnm.streamlit.app(https://national-solar-array-2-erpn4tgdjhvrqng3owwsrp.streamlit.app/)/) *(replace with actual link after deployment)*
 
 ---
 

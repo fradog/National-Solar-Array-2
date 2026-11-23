@@ -86,6 +86,52 @@ st.markdown(
 if st.button("📐 Show Me the Fiscal Math", type="secondary"):
     show_fiscal_math_modal()
     
+
+# =============================================
+# DEFAULT INPUTS
+# =============================================
+default_inputs = {
+    "project_lifespan": 30,
+    "initial_capacity": 230_000_000,      # kWp
+    "revenue_per_kwh": 0.16,
+    "avoided_fuel_per_kwh": 0.03,
+    "om_rate": 0.01,
+    "grid_maintenance_bn": 50,            # $Billion
+    "discount_rate": 0.04,
+    "degradation_rate": 0.007,
+    "reinvestment_percentage": 0.5,
+    "investment_return_rate": 0.03,
+    "bond_interest_rate": 0.025,
+    "bond_term": 10,
+    "dividend_percentage": 0.5,
+    "individual_investment": 10_000,
+    "us_adult_population": 258_000_000,
+    "participation_rate_low": 0.05,
+    "participation_rate_mid": 0.10,
+    "participation_rate_high": 0.15,
+    "carbon_tax_rate": 100.00,
+    "us_emissions_tons": 4700000000,
+    "carbon_tax_effective_rate": 0.75,
+    "displaceable_proportion": 1.0,
+    "vehicle_ice_eff": 0.200,
+    "vehicle_elec_eff": 0.800,
+    "utility_ice_elec_eff": 0.370,
+    # New Physics & Racking Storage Defaults
+    "home_preset": "Newbury Park, CA (Home)",
+    "nat_preset": "Yuma, AZ (Southwest Desert)",
+    "gcr": 0.35,
+    "home_storage_hours": 12.0,
+    "nat_storage_hours": 12.0,
+    "soc_min": 0.20,
+    "soc_max": 0.80,
+    "pv_cost_per_w": 1.00,
+    "racking_batt_cost_per_kwh": 90.0,
+    "megapack_cost_per_kwh": 235.0,
+}
+
+def _ss(key, default):
+    return st.session_state.get(key, default)
+    
 # 1. Place this helper near the top of app.py (with your other def blocks)
 @st.dialog("📐 Sovereign Fiscal & Tax Relief Math", width="large")
 def show_fiscal_math_modal():
@@ -215,55 +261,6 @@ def show_fiscal_math_modal():
         "$75,000/yr worker's direct take-home pay by $4,650/yr ($9,300/yr including employer match)—leaving households "
         "thousands of dollars ahead annually even after paying for electrified home, EV, and heating energy."
     )
-
-
-
-
-
-# =============================================
-# DEFAULT INPUTS
-# =============================================
-default_inputs = {
-    "project_lifespan": 30,
-    "initial_capacity": 230_000_000,      # kWp
-    "revenue_per_kwh": 0.16,
-    "avoided_fuel_per_kwh": 0.03,
-    "om_rate": 0.01,
-    "grid_maintenance_bn": 50,            # $Billion
-    "discount_rate": 0.04,
-    "degradation_rate": 0.007,
-    "reinvestment_percentage": 0.5,
-    "investment_return_rate": 0.03,
-    "bond_interest_rate": 0.025,
-    "bond_term": 10,
-    "dividend_percentage": 0.5,
-    "individual_investment": 10_000,
-    "us_adult_population": 258_000_000,
-    "participation_rate_low": 0.05,
-    "participation_rate_mid": 0.10,
-    "participation_rate_high": 0.15,
-    "carbon_tax_rate": 100.00,
-    "us_emissions_tons": 4700000000,
-    "carbon_tax_effective_rate": 0.75,
-    "displaceable_proportion": 1.0,
-    "vehicle_ice_eff": 0.200,
-    "vehicle_elec_eff": 0.800,
-    "utility_ice_elec_eff": 0.370,
-    # New Physics & Racking Storage Defaults
-    "home_preset": "Newbury Park, CA (Home)",
-    "nat_preset": "Yuma, AZ (Southwest Desert)",
-    "gcr": 0.35,
-    "home_storage_hours": 12.0,
-    "nat_storage_hours": 12.0,
-    "soc_min": 0.20,
-    "soc_max": 0.80,
-    "pv_cost_per_w": 1.00,
-    "racking_batt_cost_per_kwh": 90.0,
-    "megapack_cost_per_kwh": 235.0,
-}
-
-def _ss(key, default):
-    return st.session_state.get(key, default)
 
 # =============================================
 # EFFICIENCY SLIDERS (MAIN BODY)

@@ -459,11 +459,11 @@ with st.sidebar.form(key="national_solar_inputs_form"):
         )
 
 
-        submitted = st.form_submit_button(
-            "🔄 Recalculate Model",
-            type="primary",
-            use_container_width=True,
-        )
+    submitted = st.form_submit_button(
+        "🔄 Recalculate Model",
+        type="primary",
+        use_container_width=True,
+    )
 
 # ===============================================================
 # SAVE TO SESSION STATE & CONVERT TYPES

@@ -943,11 +943,11 @@ with col2:
         caption="National Solar Array Fully Automated Production and Assembly on Location",
         use_container_width=True,
     )
-st.image(
-    str(ASSETS_DIR / "factory2.jpg"),
-    caption="Colocated Vertically Integrated Solar Factory & Automated Field Deployment — Yuma, AZ",
-    use_container_width=True,
-)
+#st.image(
+#    str(ASSETS_DIR / "factory2.jpg"),
+#    caption="Colocated Vertically Integrated Solar Factory & Automated Field Deployment — Yuma, AZ",
+#    use_container_width=True,
+#)
 
 st.write(
     "<span style='font-size:0.85rem; font-style:italic;'>"

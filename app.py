@@ -989,9 +989,9 @@ b1.metric(
     f"Across {target_watts_dc / 1e9:,.0f} GWdc buildout",
 )
 b2.metric(
-    "Combined PV + Storage vs. U.S. Utility ($1.76/Wdc)",
+    "Combined PV + Storage Saved vs. U.S. Utility ($1.76/Wdc)",
+    f"${combined_capex_savings_trillions:,.2f}T total CapEx",
     f"${your_combined_wdc:.3f}/Wdc",
-    f"Saves ${combined_capex_savings_trillions:,.2f}T total CapEx",
 )
 
 with st.expander("Detailed Unit Block & Site Comparison Table", expanded=False):

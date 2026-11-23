@@ -936,7 +936,7 @@ with col2:
         use_container_width=True,
     )
 st.image(
-    "factory2_sm.jpg",
+    str(ASSETS_DIR / "factory2.jpg"),
     caption="Colocated Vertically Integrated Solar Factory & Automated Field Deployment — Yuma, AZ",
     use_container_width=True,
 )

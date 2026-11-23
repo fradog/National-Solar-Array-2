@@ -936,7 +936,7 @@ with col2:
         use_container_width=True,
     )
 st.image(
-    "factory2.jpg",
+    "factory2_sm.jpg",
     caption="Colocated Vertically Integrated Solar Factory & Automated Field Deployment — Yuma, AZ",
     use_container_width=True,
 )

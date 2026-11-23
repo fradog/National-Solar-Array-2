@@ -74,6 +74,9 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+st.caption(
+    """*Beyond decarbonization, this infrastructure serves as a sovereign fiscal engine capable of transforming federal finances and household take-home pay. By using the electricity price lever across ~9,660 TWh of annual clean generation, the array can retire the entire ~$32.8 trillion publicly held National Debt over 20 to 30 years while permanently funding 100% of U.S. National Defense (~$1.05T/yr) and Social Security (~$1.65T/yr) at ~$0.44–$0.50/kWh—or fund Defense and Social Security indefinitely at ~$0.33/kWh once the debt is cleared. Shifting those ~$2.70 trillion in annual obligations off income taxes and paycheck FICA withholdings translates to roughly $16,800 per year in tax relief per tax filer (~$7,740 per U.S. resident), leaving working families thousands of dollars ahead each year even after accounting for electricity pricing.*"""
+)
 
 # =============================================
 # DEFAULT INPUTS

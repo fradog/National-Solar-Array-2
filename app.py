@@ -133,21 +133,20 @@ def show_fiscal_math_modal():
             step=5,
         )
     with col_s2:
-        # Pull live capacity (GW) and capacity factor from scale_res
-        live_capacity_gw = float(scale_res["target_capacity_kwp"]) / 1_000_000.0
-        
-        # Safely read capacity factor whether stored as a decimal (e.g., 0.24) or percentage (e.g., 24.0)
-        raw_cf = float(scale_res.get("capacity_factor", 0.24))
+        sr = st.session_state.get("scale_res", {"target_capacity_kwp": 4600e6, "capacity_factor": 0.24})
+        live_capacity_gw = float(sr["target_capacity_kwp"]) / 1_000_000.0
+
+        raw_cf = float(sr.get("capacity_factor", 0.24))
         live_cf = raw_cf / 100.0 if raw_cf > 1.0 else raw_cf
-        
-        # Annual TWh = GW * 8,760 hours/yr * CF / 1,000
+
         annual_twh = (live_capacity_gw * 8760.0 * live_cf) / 1000.0
-        
+
         st.metric(
             label="Annual Clean Generation (From Physics Engine)",
             value=f"{annual_twh:,.0f} TWh/yr",
             delta=f"{live_capacity_gw:,.0f} GW @ {live_cf * 100:.1f}% CF",
         )
+
 
 
     # Core Fiscal & Generation Constants
@@ -713,6 +712,10 @@ scale_res = compute_national_scaleup(
     racking_batt_cost_per_kwh=racking_batt_cost_per_kwh,
     megapack_cost_per_kwh=megapack_cost_per_kwh,
 )
+
+# Right below where scale_res is created in app.py:
+st.session_state["scale_res"] = scale_res
+
 
 # Wire physics outputs directly into solar_model inputs
 inputs["efficiency_upgrade"] = efficiency_upgrade_ratio

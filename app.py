@@ -982,24 +982,17 @@ your_combined_wdc = (scale_res['blended_capex_per_kwp']/1000)
 pv_capex_savings_trillions = ((us_commercial_pv_benchmark_wdc - your_pv_wdc) * target_watts_dc) / 1e12
 combined_capex_savings_trillions = ((us_commercial_pv_storage_benchmark_wdc - your_combined_wdc) * target_watts_dc) / 1e12
 
-b1, b2, b3 = st.columns(3)
+b1, b2 = st.columns(2)
 b1.metric(
-    "Your PV Cost vs. U.S. Utility ($1.20/Wdc)",
-    f"${your_pv_wdc:.3f}/Wdc",
-    f"${us_commercial_pv_benchmark_wdc - your_pv_wdc:.3f}/Wdc ({((us_commercial_pv_benchmark_wdc - your_pv_wdc) / us_commercial_pv_benchmark_wdc) * 100:.0f}% cheaper)",
-)
-b2.metric(
     "PV-Only CapEx Saved vs. Commercial",
     f"${pv_capex_savings_trillions:,.2f} Trillion",
     f"Across {target_watts_dc / 1e9:,.0f} GWdc buildout",
 )
-b3.metric(
+b2.metric(
     "Combined PV + Storage vs. U.S. Utility ($1.76/Wdc)",
     f"${your_combined_wdc:.3f}/Wdc",
     f"Saves ${combined_capex_savings_trillions:,.2f}T total CapEx",
 )
-
-
 
 with st.expander("Detailed Unit Block & Site Comparison Table", expanded=False):
     comp_df = pd.DataFrame([

@@ -977,7 +977,7 @@ us_commercial_pv_storage_benchmark_wdc = 1.76  # DOE U.S. utility PV + 4-hr stor
 # Your live model PV-only vs. combined PV+Storage $/Wdc
 your_pv_wdc = float(pv_cost_per_w)
 # Uses your total_capex_usd if defined, or adds battery CapEx if stored separately
-your_combined_wdc = (scale_res['blended_capex_per_kwp'])
+your_combined_wdc = (scale_res['blended_capex_per_kwp']/1000)
 
 pv_capex_savings_trillions = ((us_commercial_pv_benchmark_wdc - your_pv_wdc) * target_watts_dc) / 1e12
 combined_capex_savings_trillions = ((us_commercial_pv_storage_benchmark_wdc - your_combined_wdc) * target_watts_dc) / 1e12

@@ -133,14 +133,22 @@ def show_fiscal_math_modal():
             step=5,
         )
     with col_s2:
-        annual_twh = st.number_input(
-            "Annual Clean Generation (TWh/yr)",
-            min_value=5000.0,
-            max_value=15000.0,
-            value=9660.0,
-            step=100.0,
-            help="4,600 GW × 2,100 kWh/kWp/yr = 9,660 TWh/yr across a fully electrified economy.",
+        # Pull live capacity (GW) and capacity factor from scale_res
+        live_capacity_gw = float(scale_res["target_capacity_kwp"]) / 1_000_000.0
+        
+        # Safely read capacity factor whether stored as a decimal (e.g., 0.24) or percentage (e.g., 24.0)
+        raw_cf = float(scale_res.get("capacity_factor", 0.24))
+        live_cf = raw_cf / 100.0 if raw_cf > 1.0 else raw_cf
+        
+        # Annual TWh = GW * 8,760 hours/yr * CF / 1,000
+        annual_twh = (live_capacity_gw * 8760.0 * live_cf) / 1000.0
+        
+        st.metric(
+            label="Annual Clean Generation (From Physics Engine)",
+            value=f"{annual_twh:,.0f} TWh/yr",
+            delta=f"{live_capacity_gw:,.0f} GW @ {live_cf * 100:.1f}% CF",
         )
+
 
     # Core Fiscal & Generation Constants
     annual_kwh = annual_twh * 1e9

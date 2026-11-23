@@ -66,14 +66,12 @@ st.set_page_config(page_title="National Solar Array: Net Zero Economics", layout
 st.markdown("[Full README](https://github.com)")
 
 st.title("National Solar Array Finance Calculator")
-st.write(
-    "<span style='font-size:0.85rem; font-style:italic;'>"
-    "This calculator allows the user to better understand that a massive solar + storage array can indeed and realistically "
-    "help drive the U.S. to Net Zero carbon dioxide emissions by ~2035–2037, "
-    "with strong financial returns, energy independence, and no one left behind. Funded via bonds or budget, "
-    "revenues at current electricity prices far exceed costs. This is the potential that massive deployment, "
-    "on a scale one order of magnitude greater than currently discussed, offers."
-    "</span>",
+st.markdown(
+    """
+    <div style="font-size: 0.85rem; font-style: italic; line-height: 1.5;">
+    Eliminating carbon-emitting energy generation is an urgent imperative—and incremental deployment will not get us there in time. This model demonstrates how a national solar-plus-storage buildout, deployed an order of magnitude faster and larger than conventional plans, can realistically drive the U.S. to Net Zero CO₂ emissions by ~2035–2037. Funded through bonds or federal appropriations, this scale delivers true energy independence and leaves no community behind—generating revenues at current electricity prices that far exceed total buildout costs.
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 

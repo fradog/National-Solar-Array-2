@@ -285,6 +285,14 @@ with st.sidebar.expander("EV Charging Parameters", expanded=False):
 # -------------------------------------------------
 
 with st.sidebar.expander("🏭 Factory CapEx & Carbon Parameters", expanded=False):
+    build_years = st.slider(
+        "Buildout Horizon (Years)",
+        min_value=1,
+        max_value=30,
+        value=10,
+        step=1,
+        help="Years over which the factory capital cost is amortized across total array output.",
+    )
     capex_per_kw_yr = st.slider(
         "Greenfield Factory CapEx ($/kW-yr capacity)",
         min_value=150.0,
@@ -580,12 +588,7 @@ def render_factory_layout(
             )
 
         with col2:
-            years = st.number_input(
-                "Buildout Horizon (Years)",
-                min_value=1,
-                max_value=30,
-                value=int(build_years),
-                step=1,
+            years = st.metric("Buildout Horizon", f"{build_years} Years"),
             )
         with col3:
             farms = st.number_input(
@@ -863,7 +866,7 @@ def render_factory_layout(
     }
 
     
-factory_fin = render_factory_layout()
+factory_fin = render_factory_layout(build_years=build_years)
 
 # Update pv_cost_per_w with the calculated factory & carbon costs
 pv_cost_per_w = (

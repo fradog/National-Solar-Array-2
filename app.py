@@ -179,10 +179,10 @@ st.write(
 # =============================================
 # SIDEBAR INPUTS
 # =============================================
-with st.sidebar.form(key="national_solar_inputs_form"):
-
+with st.sidebar:
     st.header("Input Parameters")
-    
+
+    # 1. Keep "Restore Defaults" OUTSIDE the form so st.button() works
     if st.button("Restore Defaults", type="primary", use_container_width=True):
         for key, val in default_inputs.items():
             st.session_state[key] = val
@@ -190,280 +190,286 @@ with st.sidebar.form(key="national_solar_inputs_form"):
         st.session_state["us_adpop_mil"] = int(default_inputs["us_adult_population"] / 1_000_000)
         st.success("All inputs restored to defaults!")
         st.rerun()
-    
+
     inputs = {}
-    
+
     def _make_slider(container, param: str, default: Union[float, int], unit: str = "", **kwargs):
         pretty = param.replace("_", " ").title()
         label = f"{pretty} {unit}".strip()
         return container.slider(label, value=_ss(param, default), **kwargs)
+
+    # 2. Start the form AFTER "Restore Defaults" and _make_slider
+    with st.form(key="national_solar_inputs_form"):
+        # Indent all your _make_slider(...) calls and expanders here (8 spaces)
+        # ...
+        # ...
     
-    # -------------------------------------------------
-    # 1. Solar Array & Racking Storage Physics Inputs
-    # -------------------------------------------------
-    with st.expander("Solar & Racking Storage Physics", expanded=True):
-        preset_names = list(LOCATION_PRESETS.keys()) + ["Custom Coordinates"]
-    
-        home_preset = st.selectbox(
-            "Home Array Location", preset_names,
-            index=preset_names.index(_ss("home_preset", default_inputs["home_preset"]))
-        )
-        if home_preset != "Custom Coordinates":
-            h_cfg = LOCATION_PRESETS[home_preset]
-            home_lat, home_lon, home_tz, home_alt = h_cfg["lat"], h_cfg["lon"], h_cfg["tz"], h_cfg["alt"]
-            home_albedo = st.slider("Home Ground Albedo", 0.10, 0.50, h_cfg["albedo"], 0.01)
-        else:
-            home_lat = st.number_input("Home Latitude", value=34.1842, format="%.4f")
-            home_lon = st.number_input("Home Longitude", value=-118.9101, format="%.4f")
-            home_tz = st.text_input("Home Timezone", value="America/Los_Angeles")
-            home_alt = st.number_input("Home Altitude (m)", value=200.0)
-            home_albedo = st.slider("Home Ground Albedo", 0.10, 0.50, 0.20, 0.01)
-    
-        nat_preset = st.selectbox(
-            "National Array Location", preset_names,
-            index=preset_names.index(_ss("nat_preset", default_inputs["nat_preset"]))
-        )
-        if nat_preset != "Custom Coordinates":
-            n_cfg = LOCATION_PRESETS[nat_preset]
-            nat_lat, nat_lon, nat_tz, nat_alt = n_cfg["lat"], n_cfg["lon"], n_cfg["tz"], n_cfg["alt"]
-            nat_albedo = st.slider("National Array Albedo", 0.10, 0.50, n_cfg["albedo"], 0.01)
-        else:
-            nat_lat = st.number_input("National Latitude", value=32.6984, format="%.4f")
-            nat_lon = st.number_input("National Longitude", value=-114.6504, format="%.4f")
-            nat_tz = st.text_input("National Timezone", value="America/Phoenix")
-            nat_alt = st.number_input("National Altitude (m)", value=75.0)
-            nat_albedo = st.slider("National Array Albedo", 0.10, 0.50, 0.28, 0.01)
-    
-        gcr = st.slider(
-            "Ground Coverage Ratio (GCR)", 0.20, 0.65,
-            _ss("gcr", default_inputs["gcr"]), 0.01, format="%.2f"
-        )
-        home_storage_hours = st.slider(
-            "Home Storage Backup (Hours/day)", 0.0, 48.0,
-            _ss("home_storage_hours", default_inputs["home_storage_hours"]), 1.0
-        )
-        nat_storage_hours = st.slider(
-            "National Array Storage (Hours/day)", 0.0, 48.0,
-            _ss("nat_storage_hours", default_inputs["nat_storage_hours"]), 1.0
-        )
-        soc_min = st.slider(
-            "Battery Min SoC", 0.05, 0.40,
-            _ss("soc_min", default_inputs["soc_min"]), 0.05, format="%.2f"
-        )
-        soc_max = st.slider(
-            "Battery Max SoC (Variable Upper Bound)", 0.50, 1.00,
-            _ss("soc_max", default_inputs["soc_max"]), 0.05, format="%.2f"
-        )
-    # -------------------------------------------------
-    # 2. System Scale & Lifespan
-    # -------------------------------------------------
-    with st.expander("System Scale & Lifespan", expanded=False):
-        inputs["project_lifespan"] = st.text_input(
-            "Project Lifespan (Yrs)", value=str(_ss("project_lifespan", default_inputs["project_lifespan"]))
-        )
-        gw_default = int(default_inputs["initial_capacity"] / 1_000_000)
-        gw_value = _ss("initial_capacity_gw", gw_default)
-        inputs["initial_capacity"] = st.slider(
-            "Initial Capacity (GWp)", 0, 1000, value=gw_value, step=10
-        ) * 1_000_000
-    
-        inputs["degradation_rate"] = _make_slider(
-            st, "degradation_rate", default_inputs["degradation_rate"],
-            unit="/yr", min_value=0.0, max_value=0.015, step=0.001, format="%.3f"
-        )
-        base_daily_kwh = st.slider("Base Daily Residential Load (kWh)", 5.0, 60.0, 25.0, step=1.0)
-    
-    # -------------------------------------------------
-    # 3. System Scale & Lifespan EV Charging 
-    # -------------------------------------------------
-    with st.expander("EV Charging Parameters", expanded=False):
-        n_evs = st.slider("Number of EVs", 0, 4, 1, step=1)
-        ev_cons = st.slider("EV EPA Combined Wh/mi)", 50.0, 400.0, 310.0, step=1.0)
-        ev_daily = st.slider("Daily EV Driving (miles)", 0, 100, 30, step=5)
-        ev_chrg_max_I_home = st.slider("Home Chargeport Max Current", 0, 60, 40, step=2)
-    
-    # -------------------------------------------------
-    # 4. Factory Carbon & Abatement 
-    # -------------------------------------------------
-    
-    with st.expander("🏭 Factory CapEx & Carbon Parameters", expanded=False):
-        build_years = st.slider(
-            "Buildout Horizon (Years)",
-            min_value=1,
-            max_value=30,
-            value=10,
-            step=1,
-            help="Years over which the factory capital cost is amortized across total array output.",
-        )
-        capex_per_kw_yr = st.slider(
-            "Greenfield Factory CapEx ($/kW-yr capacity)",
-            min_value=150.0,
-            max_value=450.0,
-            value=280.0,
-            step=10.0,
-            help="Includes greenfield building, cleanrooms, CZ pullers, DWS, cell lines, and module assembly.",
-        )
-        module_bom_opex_per_wdc = st.slider(
-            "Module Raw Materials & Factory OpEx ($/Wdc)",
-            min_value=0.06,
-            max_value=0.25,
-            value=0.12,
-            step=0.01,
-            help="Polysilicon, solar glass, aluminum, silver paste, encapsulants, and factory O&M.",
-        )
-        grid_kg_per_kwh = st.slider(
-            "Grid Carbon Intensity (kg CO₂/kWh)",
-            min_value=0.00,
-            max_value=0.80,
-            value=0.38,
-            step=0.01,
-            help="0.00 = 100% self-powered on-site solar; 0.38 = SW U.S. grid average.",
-        )
-        factory_mw_per_46gw = st.slider(
-            "Factory Power Load (MW per 4.6 GW/yr)",
-            min_value=80.0,
-            max_value=220.0,
-            value=140.0,
-            step=5.0,
-            help="Continuous electrical draw for CZ pullers, cell furnaces, and chillers (~267 kWh/kWp).",
-        )
-        scope3_kg_per_kwp = st.slider(
-            "Upstream Material Carbon — Scope 3 (kg CO₂/kWp)",
-            min_value=0.0,
-            max_value=500.0,
-            value=280.0,
-            step=10.0,
-            help="Embodied carbon in polysilicon, solar glass, and aluminum frames (0 = exclude Scope 3).",
-        )
-        capture_cost_per_ton = st.slider(
-            "Carbon Capture / Removal Cost ($/ton CO₂)",
-            min_value=0.0,
-            max_value=800.0,
-            value=65.0,
-            step=5.0,
-            help="$0 = unabated; ~$65/ton = industrial CCS offsets; ~$600/ton = Direct Air Capture (DAC).",
-        )
-    
-    # -------------------------------------------------
-    # 5. Costs (PV + Racking Battery vs. Megapack)
-    # -------------------------------------------------
-    with st.expander("Costs (PV & Racking Storage)", expanded=False):
-        automated_bos_per_wdc = st.slider(
-        "Automated Field Balance of System ($/Wdc)",
-        min_value=0.15,
-        max_value=1.00,
-        value=0.45,
-        step=0.05,
-        help="Runners, automated field 'printer' assembly machines, plug-and-play racking, inverters, and site prep.",
-        )
-        racking_batt_cost_per_kwh = st.slider(
-            "Racking-Integrated LFP Cost ($/kWh)", 40.0, 200.0,
-            _ss("racking_batt_cost_per_kwh", default_inputs["racking_batt_cost_per_kwh"]), 5.0, format="$%.0f"
-        )
-        megapack_cost_per_kwh = st.slider(
-            "Megapack 2 XL Benchmark ($/kWh)", 150.0, 400.0,
-            _ss("megapack_cost_per_kwh", default_inputs["megapack_cost_per_kwh"]), 5.0, format="$%.0f"
-        )
-        inputs["om_rate"] = _make_slider(
-            st, "om_rate", default_inputs["om_rate"],
-            unit="(fraction/yr)", min_value=0.0, max_value=0.05, step=0.001, format="%.3f"
-        )
-        inputs["grid_maintenance_bn"] = _make_slider(
-            st, "grid_maintenance_bn", default_inputs["grid_maintenance_bn"],
-            unit="$/yr", min_value=0, max_value=200, step=5, format="$%.0f"
-        )
-    
-    # -------------------------------------------------
-    # 6. Revenue & Savings
-    # -------------------------------------------------
-    with st.expander("Revenue & Savings", expanded=False):
-        inputs["revenue_per_kwh"] = _make_slider(
-            st, "revenue_per_kwh", default_inputs["revenue_per_kwh"],
-            unit="$/kWh", min_value=0.00, max_value=0.30, step=0.001, format="$%.3f"
-        )
-        inputs["avoided_fuel_per_kwh"] = _make_slider(
-            st, "avoided_fuel_per_kwh", default_inputs["avoided_fuel_per_kwh"],
-            unit="$/kWh", min_value=0.0, max_value=0.10, step=0.001, format="$%.3f"
-        )
-        inputs["carbon_tax_rate"] = _make_slider(
-            st, "carbon_tax_rate", default_inputs["carbon_tax_rate"],
-            unit="$/ton", min_value=0.0, max_value=200.0, step=5.0, format="$%.0f"
-        )
-        inputs["carbon_tax_effective_rate"] = _make_slider(
-            st, "carbon_tax_effective_rate", default_inputs["carbon_tax_effective_rate"],
-            unit="", min_value=0.5, max_value=1.0, step=0.05, format="%.2f"
-        )
-        inputs["displaceable_proportion"] = _make_slider(
-            st, "displaceable_proportion", default_inputs["displaceable_proportion"],
-            unit="", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
-        )
-        inputs["us_emissions_tons"] = st.text_input(
-            "Annual U.S. CO₂e Emissions (tons)",
-            value=str(_ss("us_emissions_tons", f"{default_inputs['us_emissions_tons']:,}"))
-        )
-    
-    # -------------------------------------------------
-    # 7. Reinvestment
-    # -------------------------------------------------
-    with st.expander("Reinvestment", expanded=False):
-        inputs["reinvestment_percentage"] = _make_slider(
-            st, "reinvestment_percentage", default_inputs["reinvestment_percentage"],
-            unit="(fraction)", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
-        )
-        inputs["investment_return_rate"] = _make_slider(
-            st, "investment_return_rate", default_inputs["investment_return_rate"],
-            unit="", min_value=0.0, max_value=0.20, step=0.005, format="%.3f"
-        )
-        inputs["discount_rate"] = _make_slider(
-            st, "discount_rate", default_inputs["discount_rate"],
-            unit="", min_value=0.0, max_value=0.20, step=0.005, format="%.3f"
-        )
-    
-    # -------------------------------------------------
-    # 8. Bond Financing
-    # -------------------------------------------------
-    with st.expander("Bond Financing", expanded=False):
-        us_adpop_default = int(default_inputs["us_adult_population"] / 1_000_000)
-        us_adpop_value = _ss("us_adpop_mil", us_adpop_default)
-        inputs["us_adult_population"] = st.slider(
-            "US Adult Population (M)", 200, 350, value=us_adpop_value, step=2
-        ) * 1_000_000
-    
-        inputs["bond_interest_rate"] = _make_slider(
-            st, "bond_interest_rate", default_inputs["bond_interest_rate"],
-            unit="", min_value=0.0, max_value=0.10, step=0.001, format="%.3f"
-        )
-        inputs["bond_term"] = st.number_input(
-            "Bond Term (years)", min_value=1, max_value=30,
-            value=int(_ss("bond_term", default_inputs["bond_term"])), step=1
-        )
-        inputs["dividend_percentage"] = _make_slider(
-            st, "dividend_percentage", default_inputs["dividend_percentage"],
-            unit="(fraction)", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
-        )
-        inputs["individual_investment"] = _make_slider(
-            st, "individual_investment", default_inputs["individual_investment"],
-            unit="$", min_value=0, max_value=100_000, step=100, format="$%.0f"
-        )
-        inputs["participation_rate_low"] = _make_slider(
-            st, "participation_rate_low", default_inputs["participation_rate_low"],
-            unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
-        )
-        inputs["participation_rate_mid"] = _make_slider(
-            st, "participation_rate_mid", default_inputs["participation_rate_mid"],
-            unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
-        )
-        inputs["participation_rate_high"] = _make_slider(
-            st, "participation_rate_high", default_inputs["participation_rate_high"],
-            unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
-        )
+        # -------------------------------------------------
+        # 1. Solar Array & Racking Storage Physics Inputs
+        # -------------------------------------------------
+        with st.expander("Solar & Racking Storage Physics", expanded=True):
+            preset_names = list(LOCATION_PRESETS.keys()) + ["Custom Coordinates"]
+        
+            home_preset = st.selectbox(
+                "Home Array Location", preset_names,
+                index=preset_names.index(_ss("home_preset", default_inputs["home_preset"]))
+            )
+            if home_preset != "Custom Coordinates":
+                h_cfg = LOCATION_PRESETS[home_preset]
+                home_lat, home_lon, home_tz, home_alt = h_cfg["lat"], h_cfg["lon"], h_cfg["tz"], h_cfg["alt"]
+                home_albedo = st.slider("Home Ground Albedo", 0.10, 0.50, h_cfg["albedo"], 0.01)
+            else:
+                home_lat = st.number_input("Home Latitude", value=34.1842, format="%.4f")
+                home_lon = st.number_input("Home Longitude", value=-118.9101, format="%.4f")
+                home_tz = st.text_input("Home Timezone", value="America/Los_Angeles")
+                home_alt = st.number_input("Home Altitude (m)", value=200.0)
+                home_albedo = st.slider("Home Ground Albedo", 0.10, 0.50, 0.20, 0.01)
+        
+            nat_preset = st.selectbox(
+                "National Array Location", preset_names,
+                index=preset_names.index(_ss("nat_preset", default_inputs["nat_preset"]))
+            )
+            if nat_preset != "Custom Coordinates":
+                n_cfg = LOCATION_PRESETS[nat_preset]
+                nat_lat, nat_lon, nat_tz, nat_alt = n_cfg["lat"], n_cfg["lon"], n_cfg["tz"], n_cfg["alt"]
+                nat_albedo = st.slider("National Array Albedo", 0.10, 0.50, n_cfg["albedo"], 0.01)
+            else:
+                nat_lat = st.number_input("National Latitude", value=32.6984, format="%.4f")
+                nat_lon = st.number_input("National Longitude", value=-114.6504, format="%.4f")
+                nat_tz = st.text_input("National Timezone", value="America/Phoenix")
+                nat_alt = st.number_input("National Altitude (m)", value=75.0)
+                nat_albedo = st.slider("National Array Albedo", 0.10, 0.50, 0.28, 0.01)
+        
+            gcr = st.slider(
+                "Ground Coverage Ratio (GCR)", 0.20, 0.65,
+                _ss("gcr", default_inputs["gcr"]), 0.01, format="%.2f"
+            )
+            home_storage_hours = st.slider(
+                "Home Storage Backup (Hours/day)", 0.0, 48.0,
+                _ss("home_storage_hours", default_inputs["home_storage_hours"]), 1.0
+            )
+            nat_storage_hours = st.slider(
+                "National Array Storage (Hours/day)", 0.0, 48.0,
+                _ss("nat_storage_hours", default_inputs["nat_storage_hours"]), 1.0
+            )
+            soc_min = st.slider(
+                "Battery Min SoC", 0.05, 0.40,
+                _ss("soc_min", default_inputs["soc_min"]), 0.05, format="%.2f"
+            )
+            soc_max = st.slider(
+                "Battery Max SoC (Variable Upper Bound)", 0.50, 1.00,
+                _ss("soc_max", default_inputs["soc_max"]), 0.05, format="%.2f"
+            )
+        # -------------------------------------------------
+        # 2. System Scale & Lifespan
+        # -------------------------------------------------
+        with st.expander("System Scale & Lifespan", expanded=False):
+            inputs["project_lifespan"] = st.text_input(
+                "Project Lifespan (Yrs)", value=str(_ss("project_lifespan", default_inputs["project_lifespan"]))
+            )
+            gw_default = int(default_inputs["initial_capacity"] / 1_000_000)
+            gw_value = _ss("initial_capacity_gw", gw_default)
+            inputs["initial_capacity"] = st.slider(
+                "Initial Capacity (GWp)", 0, 1000, value=gw_value, step=10
+            ) * 1_000_000
+        
+            inputs["degradation_rate"] = _make_slider(
+                st, "degradation_rate", default_inputs["degradation_rate"],
+                unit="/yr", min_value=0.0, max_value=0.015, step=0.001, format="%.3f"
+            )
+            base_daily_kwh = st.slider("Base Daily Residential Load (kWh)", 5.0, 60.0, 25.0, step=1.0)
+        
+        # -------------------------------------------------
+        # 3. System Scale & Lifespan EV Charging 
+        # -------------------------------------------------
+        with st.expander("EV Charging Parameters", expanded=False):
+            n_evs = st.slider("Number of EVs", 0, 4, 1, step=1)
+            ev_cons = st.slider("EV EPA Combined Wh/mi)", 50.0, 400.0, 310.0, step=1.0)
+            ev_daily = st.slider("Daily EV Driving (miles)", 0, 100, 30, step=5)
+            ev_chrg_max_I_home = st.slider("Home Chargeport Max Current", 0, 60, 40, step=2)
+        
+        # -------------------------------------------------
+        # 4. Factory Carbon & Abatement 
+        # -------------------------------------------------
+        
+        with st.expander("🏭 Factory CapEx & Carbon Parameters", expanded=False):
+            build_years = st.slider(
+                "Buildout Horizon (Years)",
+                min_value=1,
+                max_value=30,
+                value=10,
+                step=1,
+                help="Years over which the factory capital cost is amortized across total array output.",
+            )
+            capex_per_kw_yr = st.slider(
+                "Greenfield Factory CapEx ($/kW-yr capacity)",
+                min_value=150.0,
+                max_value=450.0,
+                value=280.0,
+                step=10.0,
+                help="Includes greenfield building, cleanrooms, CZ pullers, DWS, cell lines, and module assembly.",
+            )
+            module_bom_opex_per_wdc = st.slider(
+                "Module Raw Materials & Factory OpEx ($/Wdc)",
+                min_value=0.06,
+                max_value=0.25,
+                value=0.12,
+                step=0.01,
+                help="Polysilicon, solar glass, aluminum, silver paste, encapsulants, and factory O&M.",
+            )
+            grid_kg_per_kwh = st.slider(
+                "Grid Carbon Intensity (kg CO₂/kWh)",
+                min_value=0.00,
+                max_value=0.80,
+                value=0.38,
+                step=0.01,
+                help="0.00 = 100% self-powered on-site solar; 0.38 = SW U.S. grid average.",
+            )
+            factory_mw_per_46gw = st.slider(
+                "Factory Power Load (MW per 4.6 GW/yr)",
+                min_value=80.0,
+                max_value=220.0,
+                value=140.0,
+                step=5.0,
+                help="Continuous electrical draw for CZ pullers, cell furnaces, and chillers (~267 kWh/kWp).",
+            )
+            scope3_kg_per_kwp = st.slider(
+                "Upstream Material Carbon — Scope 3 (kg CO₂/kWp)",
+                min_value=0.0,
+                max_value=500.0,
+                value=280.0,
+                step=10.0,
+                help="Embodied carbon in polysilicon, solar glass, and aluminum frames (0 = exclude Scope 3).",
+            )
+            capture_cost_per_ton = st.slider(
+                "Carbon Capture / Removal Cost ($/ton CO₂)",
+                min_value=0.0,
+                max_value=800.0,
+                value=65.0,
+                step=5.0,
+                help="$0 = unabated; ~$65/ton = industrial CCS offsets; ~$600/ton = Direct Air Capture (DAC).",
+            )
+        
+        # -------------------------------------------------
+        # 5. Costs (PV + Racking Battery vs. Megapack)
+        # -------------------------------------------------
+        with st.expander("Costs (PV & Racking Storage)", expanded=False):
+            automated_bos_per_wdc = st.slider(
+            "Automated Field Balance of System ($/Wdc)",
+            min_value=0.15,
+            max_value=1.00,
+            value=0.45,
+            step=0.05,
+            help="Runners, automated field 'printer' assembly machines, plug-and-play racking, inverters, and site prep.",
+            )
+            racking_batt_cost_per_kwh = st.slider(
+                "Racking-Integrated LFP Cost ($/kWh)", 40.0, 200.0,
+                _ss("racking_batt_cost_per_kwh", default_inputs["racking_batt_cost_per_kwh"]), 5.0, format="$%.0f"
+            )
+            megapack_cost_per_kwh = st.slider(
+                "Megapack 2 XL Benchmark ($/kWh)", 150.0, 400.0,
+                _ss("megapack_cost_per_kwh", default_inputs["megapack_cost_per_kwh"]), 5.0, format="$%.0f"
+            )
+            inputs["om_rate"] = _make_slider(
+                st, "om_rate", default_inputs["om_rate"],
+                unit="(fraction/yr)", min_value=0.0, max_value=0.05, step=0.001, format="%.3f"
+            )
+            inputs["grid_maintenance_bn"] = _make_slider(
+                st, "grid_maintenance_bn", default_inputs["grid_maintenance_bn"],
+                unit="$/yr", min_value=0, max_value=200, step=5, format="$%.0f"
+            )
+        
+        # -------------------------------------------------
+        # 6. Revenue & Savings
+        # -------------------------------------------------
+        with st.expander("Revenue & Savings", expanded=False):
+            inputs["revenue_per_kwh"] = _make_slider(
+                st, "revenue_per_kwh", default_inputs["revenue_per_kwh"],
+                unit="$/kWh", min_value=0.00, max_value=0.30, step=0.001, format="$%.3f"
+            )
+            inputs["avoided_fuel_per_kwh"] = _make_slider(
+                st, "avoided_fuel_per_kwh", default_inputs["avoided_fuel_per_kwh"],
+                unit="$/kWh", min_value=0.0, max_value=0.10, step=0.001, format="$%.3f"
+            )
+            inputs["carbon_tax_rate"] = _make_slider(
+                st, "carbon_tax_rate", default_inputs["carbon_tax_rate"],
+                unit="$/ton", min_value=0.0, max_value=200.0, step=5.0, format="$%.0f"
+            )
+            inputs["carbon_tax_effective_rate"] = _make_slider(
+                st, "carbon_tax_effective_rate", default_inputs["carbon_tax_effective_rate"],
+                unit="", min_value=0.5, max_value=1.0, step=0.05, format="%.2f"
+            )
+            inputs["displaceable_proportion"] = _make_slider(
+                st, "displaceable_proportion", default_inputs["displaceable_proportion"],
+                unit="", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
+            )
+            inputs["us_emissions_tons"] = st.text_input(
+                "Annual U.S. CO₂e Emissions (tons)",
+                value=str(_ss("us_emissions_tons", f"{default_inputs['us_emissions_tons']:,}"))
+            )
+        
+        # -------------------------------------------------
+        # 7. Reinvestment
+        # -------------------------------------------------
+        with st.expander("Reinvestment", expanded=False):
+            inputs["reinvestment_percentage"] = _make_slider(
+                st, "reinvestment_percentage", default_inputs["reinvestment_percentage"],
+                unit="(fraction)", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
+            )
+            inputs["investment_return_rate"] = _make_slider(
+                st, "investment_return_rate", default_inputs["investment_return_rate"],
+                unit="", min_value=0.0, max_value=0.20, step=0.005, format="%.3f"
+            )
+            inputs["discount_rate"] = _make_slider(
+                st, "discount_rate", default_inputs["discount_rate"],
+                unit="", min_value=0.0, max_value=0.20, step=0.005, format="%.3f"
+            )
+        
+        # -------------------------------------------------
+        # 8. Bond Financing
+        # -------------------------------------------------
+        with st.expander("Bond Financing", expanded=False):
+            us_adpop_default = int(default_inputs["us_adult_population"] / 1_000_000)
+            us_adpop_value = _ss("us_adpop_mil", us_adpop_default)
+            inputs["us_adult_population"] = st.slider(
+                "US Adult Population (M)", 200, 350, value=us_adpop_value, step=2
+            ) * 1_000_000
+        
+            inputs["bond_interest_rate"] = _make_slider(
+                st, "bond_interest_rate", default_inputs["bond_interest_rate"],
+                unit="", min_value=0.0, max_value=0.10, step=0.001, format="%.3f"
+            )
+            inputs["bond_term"] = st.number_input(
+                "Bond Term (years)", min_value=1, max_value=30,
+                value=int(_ss("bond_term", default_inputs["bond_term"])), step=1
+            )
+            inputs["dividend_percentage"] = _make_slider(
+                st, "dividend_percentage", default_inputs["dividend_percentage"],
+                unit="(fraction)", min_value=0.0, max_value=1.0, step=0.05, format="%.2f"
+            )
+            inputs["individual_investment"] = _make_slider(
+                st, "individual_investment", default_inputs["individual_investment"],
+                unit="$", min_value=0, max_value=100_000, step=100, format="$%.0f"
+            )
+            inputs["participation_rate_low"] = _make_slider(
+                st, "participation_rate_low", default_inputs["participation_rate_low"],
+                unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
+            )
+            inputs["participation_rate_mid"] = _make_slider(
+                st, "participation_rate_mid", default_inputs["participation_rate_mid"],
+                unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
+            )
+            inputs["participation_rate_high"] = _make_slider(
+                st, "participation_rate_high", default_inputs["participation_rate_high"],
+                unit="", min_value=0.0, max_value=1.00, step=0.05, format="%.2f"
+            )
 
 
-    submitted = st.form_submit_button(
-        "🔄 Recalculate Model",
-        type="primary",
-        use_container_width=True,
-    )
+        submitted = st.form_submit_button(
+            "🔄 Recalculate Model",
+            type="primary",
+            use_container_width=True,
+        )
 
 # ===============================================================
 # SAVE TO SESSION STATE & CONVERT TYPES

@@ -82,6 +82,141 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+# 2. Place this button directly below your 3-paragraph intro st.markdown(...) block:
+if st.button("📐 Show Me the Fiscal Math", type="secondary"):
+    show_fiscal_math_modal()
+    
+# 1. Place this helper near the top of app.py (with your other def blocks)
+@st.dialog("📐 Sovereign Fiscal & Tax Relief Math", width="large")
+def show_fiscal_math_modal():
+    st.markdown(
+        "This breakdown shows how electricity revenue from the **4,600 GW** national array "
+        "can retire the publicly held National Debt while permanently funding National Defense "
+        "and Social Security—replacing income and payroll taxes with clean energy revenue."
+    )
+
+    # Interactive Debt Payoff Horizon inside the popup
+    col_s1, col_s2 = st.columns(2)
+    with col_s1:
+        debt_payoff_years = st.slider(
+            "National Debt Payoff Horizon (Years)",
+            min_value=10,
+            max_value=40,
+            value=20,
+            step=5,
+        )
+    with col_s2:
+        annual_twh = st.number_input(
+            "Annual Clean Generation (TWh/yr)",
+            min_value=5000.0,
+            max_value=15000.0,
+            value=9660.0,
+            step=100.0,
+            help="4,600 GW × 2,100 kWh/kWp/yr = 9,660 TWh/yr across a fully electrified economy.",
+        )
+
+    # Core Fiscal & Generation Constants
+    annual_kwh = annual_twh * 1e9
+    public_debt_usd = 32.77e12      # ~$32.77T publicly held debt principal
+    defense_annual_usd = 1.05e12    # ~$1.05T/yr U.S. National Defense
+    ss_annual_usd = 1.65e12         # ~$1.65T/yr Social Security (OASDI)
+    array_annual_cost_usd = 0.48e12 # ~$0.48T/yr annualized array CapEx + O&M
+
+    annual_debt_service = public_debt_usd / debt_payoff_years
+    total_during_payoff = annual_debt_service + defense_annual_usd + ss_annual_usd + array_annual_cost_usd
+    total_post_payoff = defense_annual_usd + ss_annual_usd + array_annual_cost_usd
+
+    price_during_payoff = total_during_payoff / annual_kwh
+    price_post_payoff = total_post_payoff / annual_kwh
+
+    # Top KPI Row
+    m1, m2, m3 = st.columns(3)
+    m1.metric(
+        f"Price During {debt_payoff_years}-Yr Payoff",
+        f"${price_during_payoff:.2f}/kWh",
+        f"Generates ${total_during_payoff / 1e12:.2f}T/yr gross revenue",
+    )
+    m2.metric(
+        "Price After Debt Is Cleared",
+        f"${price_post_payoff:.2f}/kWh",
+        f"Funds 100% Defense + SS + Array O&M (${total_post_payoff / 1e12:.2f}T/yr)",
+    )
+    m3.metric(
+        "Annual Taxes Eliminated",
+        "$2.70 Trillion/yr",
+        "$16,812/yr per tax filer | $7,736/yr per resident",
+    )
+
+    # Step-by-Step Revenue & Cost Table
+    st.subheader("1. Electricity Price Lever Breakdown")
+    df_fiscal = pd.DataFrame(
+        [
+            {
+                "Fiscal Line Item": "Publicly Held National Debt Principal ($32.77T)",
+                f"Annual Requirement (Yrs 1–{debt_payoff_years})": f"${annual_debt_service / 1e12:.2f}T / yr",
+                "Required $/kWh": f"${annual_debt_service / annual_kwh:.3f}/kWh",
+                f"Post-Payoff (Yr {debt_payoff_years + 1}+)": "$0.00T / yr",
+            },
+            {
+                "Fiscal Line Item": "U.S. National Defense Budget (100% Funded)",
+                f"Annual Requirement (Yrs 1–{debt_payoff_years})": "$1.05T / yr",
+                "Required $/kWh": f"${defense_annual_usd / annual_kwh:.3f}/kWh",
+                f"Post-Payoff (Yr {debt_payoff_years + 1}+)": "$1.05T / yr",
+            },
+            {
+                "Fiscal Line Item": "Social Security (OASDI — 100% Funded)",
+                f"Annual Requirement (Yrs 1–{debt_payoff_years})": "$1.65T / yr",
+                "Required $/kWh": f"${ss_annual_usd / annual_kwh:.3f}/kWh",
+                f"Post-Payoff (Yr {debt_payoff_years + 1}+)": "$1.65T / yr",
+            },
+            {
+                "Fiscal Line Item": "Array Annualized CapEx & O&M",
+                f"Annual Requirement (Yrs 1–{debt_payoff_years})": "$0.48T / yr",
+                "Required $/kWh": f"${array_annual_cost_usd / annual_kwh:.3f}/kWh",
+                f"Post-Payoff (Yr {debt_payoff_years + 1}+)": "$0.48T / yr",
+            },
+            {
+                "Fiscal Line Item": "TOTAL REVENUE & ELECTRICITY RATE",
+                f"Annual Requirement (Yrs 1–{debt_payoff_years})": f"${total_during_payoff / 1e12:.2f}T / yr",
+                "Required $/kWh": f"${price_during_payoff:.2f}/kWh",
+                f"Post-Payoff (Yr {debt_payoff_years + 1}+)": f"${total_post_payoff / 1e12:.2f}T / yr (${price_post_payoff:.2f}/kWh)",
+            },
+        ]
+    )
+    st.dataframe(df_fiscal, use_container_width=True, hide_index=True)
+
+    # Per-Citizen Tax Relief Table
+    st.subheader("2. Direct Tax & Paycheck Relief ($2.70T/yr Shifted Off Taxpayers)")
+    df_tax = pd.DataFrame(
+        [
+            {
+                "Demographic Group": "Per U.S. Resident (~349.0M)",
+                "Defense Tax Cut ($1.05T/yr)": "$3,009 / yr",
+                "Social Security FICA Relief ($1.65T/yr)": "$4,728 / yr",
+                "Combined Annual Relief": "$7,736 / yr ($645/mo)",
+            },
+            {
+                "Demographic Group": "Per Tax Filer (~160.6M)",
+                "Defense Tax Cut ($1.05T/yr)": "$6,538 / yr",
+                "Social Security FICA Relief ($1.65T/yr)": "$10,274 / yr",
+                "Combined Annual Relief": "$16,812 / yr ($1,401/mo)",
+            },
+            {
+                "Demographic Group": "Per Taxpayer Owing Income Tax (~111.6M)",
+                "Defense Tax Cut ($1.05T/yr)": "$9,409 / yr",
+                "Social Security FICA Relief ($1.65T/yr)": "$14,785 / yr",
+                "Combined Annual Relief": "$24,194 / yr ($2,016/mo)",
+            },
+        ]
+    )
+    st.dataframe(df_tax, use_container_width=True, hide_index=True)
+    st.caption(
+        "Note: Eliminating the 12.4% Social Security payroll tax (6.2% employee + 6.2% employer) immediately raises a "
+        "$75,000/yr worker's direct take-home pay by $4,650/yr ($9,300/yr including employer match)—leaving households "
+        "thousands of dollars ahead annually even after paying for electrified home, EV, and heating energy."
+    )
+
+
 
 
 

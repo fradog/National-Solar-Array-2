@@ -486,7 +486,22 @@ for k in ["project_lifespan", "bond_term", "individual_investment"]:
 for k in list(inputs.keys()):
     if k not in {"initial_capacity", "us_adult_population", "project_lifespan", "bond_term", "individual_investment"}:
         inputs[k] = _to_num(inputs[k], is_int=False)
+        
+# 1. Amortized Factory CapEx ($/Wdc) — independent of total GW!
+amortized_capex_per_wdc = capex_per_kw_yr / (build_years * 1000.0)
 
+# 2. Carbon Capture Cost ($/Wdc) — independent of total GW!
+kwh_per_kwp_produced = (factory_mw_per_46gw * 1000.0 * 8760.0) / (4.6 * 1_000_000.0)
+total_kg_per_kwp = (kwh_per_kwp_produced * grid_kg_per_kwh) + scope3_kg_per_kwp
+capture_cost_per_wdc = (total_kg_per_kwp / 1000.0) * capture_cost_per_ton / 1000.
+
+# 3. Complete Installed Solar PV Cost ($/Wdc) — ready BEFORE physics_engine runs!
+pv_cost_per_w = (
+    module_bom_opex_per_wdc
+    + automated_bos_per_wdc
+    + amortized_capex_per_wdc
+    + capture_cost_per_wdc
+)
 # =============================================
 # RUN PHYSICS ENGINE (HOME & NATIONAL SITES)
 # =============================================

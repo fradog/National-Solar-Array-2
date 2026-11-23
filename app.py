@@ -986,7 +986,7 @@ b1, b2, b3 = st.columns(3)
 b1.metric(
     "Your PV Cost vs. U.S. Utility ($1.20/Wdc)",
     f"${your_pv_wdc:.3f}/Wdc",
-    f"-${us_commercial_pv_benchmark_wdc - your_pv_wdc:.3f}/Wdc ({((us_commercial_pv_benchmark_wdc - your_pv_wdc) / us_commercial_pv_benchmark_wdc) * 100:.0f}% cheaper)",
+    f"${us_commercial_pv_benchmark_wdc - your_pv_wdc:.3f}/Wdc ({((us_commercial_pv_benchmark_wdc - your_pv_wdc) / us_commercial_pv_benchmark_wdc) * 100:.0f}% cheaper)",
 )
 b2.metric(
     "PV-Only CapEx Saved vs. Commercial",

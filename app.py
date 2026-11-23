@@ -588,8 +588,7 @@ def render_factory_layout(
             )
 
         with col2:
-            years = st.metric("Buildout Horizon", f"{build_years} Years"),
-            )
+            years = st.metric("Buildout Horizon", f"{build_years} Years")
         with col3:
             farms = st.number_input(
                 "Colocated Farms / Factories",

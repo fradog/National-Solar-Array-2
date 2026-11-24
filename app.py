@@ -73,6 +73,7 @@ st.markdown("[Full README](https://github.com)")
 # =============================================
 default_inputs = {
     "total_energy_quads": 77.1,
+    "buidout_years": 10,
     "project_lifespan": 30,
     "initial_capacity": 230_000_000,      # kWp
     "revenue_per_kwh": 0.16,

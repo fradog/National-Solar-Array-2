@@ -269,7 +269,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 # 2. Place this button directly below your 3-paragraph intro st.markdown(...) block:
-if st.button("📐 Show Me the Fiscal Math", type="secondary"):
+if st.button("Show Me the Fiscal Math", type="secondary"):
     show_fiscal_math_modal()
 
 
@@ -449,7 +449,7 @@ with st.sidebar:
         # 4. Factory Carbon & Abatement 
         # -------------------------------------------------
         
-        with st.expander("🏭 Factory CapEx & Carbon Parameters", expanded=False):
+        with st.expander("Factory CapEx & Carbon Parameters", expanded=False):
             buildout_years = st.slider(
                 "Buildout Horizon (Years)",
                 min_value=1,
@@ -748,7 +748,7 @@ def render_factory_layout(
     # Calculate fresh from scale_res every time the function runs (kWp -> GW)
     total_target_gw = float(scale_res["target_capacity_kwp"]) / 1_000_000.0
 
-    st.header("🏭 Colocated Vertically Integrated Factory Layout")
+    st.header("Colocated Vertically Integrated Factory Layout")
     st.markdown(
         "Each solar farm includes an on-site, rail-fed manufacturing facility that converts "
         "raw polysilicon, glass, and aluminum directly into finished solar modules—eliminating "
@@ -895,11 +895,11 @@ def render_factory_layout(
     )
     df_display = pd.concat([df_display, total_row], ignore_index=True)
 
-    st.subheader("📊 Building Footprint Breakdown (Per Factory)")
+    st.subheader("Building Footprint Breakdown (Per Factory)")
     st.dataframe(df_display, use_container_width=True, hide_index=True)
 
     # --- 6. Ingot Puller Detail Table ---
-    st.subheader("🔬 CZ Ingot Puller Hall Breakdown")
+    st.subheader("CZ Ingot Puller Hall Breakdown")
     df_ingot = pd.DataFrame(
         [
             {
@@ -925,7 +925,7 @@ def render_factory_layout(
     st.dataframe(df_ingot, use_container_width=True, hide_index=True)
 
     # --- 7. Engineering & Site Layout Notes ---
-    st.subheader("🏗️ Linear Flow & Southwestern U.S. Site Strategy")
+    st.subheader("Linear Flow & Southwestern U.S. Site Strategy")
     c1, c2 = st.columns(2)
 
     with c1:
@@ -949,7 +949,7 @@ def render_factory_layout(
         )
     
     # --- 8. Factory Capital Expenditure (CapEx) ---
-    st.subheader("💰 Factory Capital Expenditure (CapEx)")
+    st.subheader("Factory Capital Expenditure (CapEx)")
     single_factory_capex_usd = factory_annual_gw * 1_000_000.0 * capex_per_kw_yr
     total_factories_capex_usd = single_factory_capex_usd * farms
     amortized_capex_per_wdc = total_factories_capex_usd / (target_gw * 1_000_000_000.0)
@@ -972,11 +972,11 @@ def render_factory_layout(
     )
 
     # --- 9. Factory CO2 Emissions & Abatement Strategies ---
-    st.subheader("🌍 Factory CO₂ Emissions & Carbon Abatement")
+    st.subheader("Factory CO₂ Emissions & Carbon Abatement")
     st.markdown(
         "On-site factory emissions are **Scope 2 (electricity)** while raw polysilicon, glass, "
         "and aluminum carry **Scope 3 (upstream material)** embodied carbon. "
-        "*(Adjust assumptions in the **🏭 Factory CapEx & Carbon Parameters** sidebar section.)*"
+        "*(Adjust assumptions in the **Factory CapEx & Carbon Parameters** sidebar section.)*"
     )
 
     sr = st.session_state.get("scale_res", {"target_capacity_kwp": 4600e6, "capacity_factor_ac": 0.24})
@@ -1119,7 +1119,7 @@ c7.metric("Integrated vs. Megapack CapEx", f"${scale_res['total_capex_integrated
 c8.metric("Home Self-Sufficiency", f"{home_res['self_sufficiency']:.1f}%", f"{home_res['cells_per_unit']} cells ({home_res['batt_mass_kg']/home_res['total_rail_m']:.1f} kg/m rail)")
 
 # --- U.S. Commercial Utility Benchmark Comparison ---
-st.subheader("📊 Capital Savings vs. Commercial U.S. Utility Benchmarks")
+st.subheader("Capital Savings vs. Commercial U.S. Utility Benchmarks")
 
 target_watts_dc = float(scale_res["target_capacity_kwp"]) * 1000.0
 us_commercial_pv_benchmark_wdc = 1.20          # DOE/SEIA U.S. utility tracking PV (~$1.12-$1.32/Wdc)

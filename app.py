@@ -458,6 +458,7 @@ with st.sidebar:
                 step=1,
                 help="Years over which the factory capital cost is amortized across total array output.",
             )
+            inputs["buildout_years"] = buildout_years
             capex_per_kw_yr = st.slider(
                 "Greenfield Factory CapEx ($/kW-yr capacity)",
                 min_value=150.0,

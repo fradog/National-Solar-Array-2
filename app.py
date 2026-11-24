@@ -283,7 +283,7 @@ st.write(
     "</span>",
     unsafe_allow_html=True,
 )
-col1 = st,columns(1)
+col1 = st.columns(1)
 with col1:
     total_energy_quads = st.slider(
         "Energy Goal (quads)", 50.0, 100.0,

@@ -79,6 +79,7 @@ def calculate_bond_principal(inputs):
 
 
 def calculate_cash_flows(inputs, bond_principal, project_lifespan=30):
+    buildout_years = inputs['buildout_years']
     initial_capacity = inputs['initial_capacity']  # kWp
     target_capacity = inputs['target_capacity']  # kWp
     hours_per_year = inputs['capacity_factor'] * 8760
@@ -96,7 +97,7 @@ def calculate_cash_flows(inputs, bond_principal, project_lifespan=30):
     individual_investment = inputs['individual_investment']
     efficiency_upgrade = inputs['efficiency_upgrade']
     
-    annual_addition = (target_capacity - initial_capacity) / 10
+    annual_addition = (target_capacity - initial_capacity) / buildout_years
     annual_debt_service = -npf.pmt(bond_interest_rate, bond_term, bond_principal) if bond_term > 0 else 0
     annual_debt_service_list = [annual_debt_service if t < bond_term else 0 for t in range(project_lifespan)]
     
@@ -134,7 +135,7 @@ def calculate_cash_flows(inputs, bond_principal, project_lifespan=30):
         energy_kwh = effective_capacity * hours_per_year
         energy_shortfall = target_energy_kwh - energy_kwh
         additional_capacity = energy_shortfall / hours_per_year if energy_shortfall > 0 else 0
-        planned_new_capacity = annual_addition if t < 10 else 0
+        planned_new_capacity = annual_addition if t < buildout_years else 0
         total_new_capacity = planned_new_capacity + additional_capacity
         cumulative_capacity += total_new_capacity
         effective_capacity += total_new_capacity

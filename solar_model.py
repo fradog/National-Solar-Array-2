@@ -210,7 +210,7 @@ def calculate_lcoe_simple(inputs: dict, project_lifespan: int = 30) -> dict:
     capex_usd = np.zeros(project_lifespan)
 
     for yr in range(project_lifespan):
-        if yr < 10:
+        if yr < buildout_years:
             new_kw_this_year = annual_add_kw
         else:
             new_kw_this_year = 0.0
@@ -404,7 +404,12 @@ def calculate_metrics(inputs, cash_flows_df, bond_principal, project_lifespan=30
     cumulative_surplus_post_debt = sum(cash_flows_post_debt) / 10**12
     total_interest_paid = sum(cash_flows_df['Interest Payment ($B)']) * 10**9 / 10**12
     total_dividends_paid = sum(cash_flows_df['Dividends ($B)']) * 10**9 / 10**12
-    debt_coverage_ratio_year10 = (cash_flows_df['Cash Flow Pre-Debt ($B)'].iloc[9] * 10**9 / (-npf.pmt(bond_interest_rate, bond_term, bond_principal))) if bond_term > 0 and bond_principal > 0 else float('nan')
+    buildout_years = int(inputs.get('buildout_years', 10))
+    dscr_idx = min(buildout_years, project_lifespan) - 1
+    debt_coverage_ratio_year10 = (
+        (cash_flows_df['Cash Flow Pre-Debt ($B)'].iloc[dscr_idx] * 10**9 / (-npf.pmt(bond_interest_rate, bond_term, bond_principal)))
+        if bond_term > 0 and bond_principal > 0 else float('nan')
+    )
     final_reinvested_balance = cash_flows_df['Reinvested Balance ($B)'].iloc[-1] * 10**9 / 10**12
     
     investor_cash_flows = [-individual_investment] + cash_flows_df['Investor Total Cash Flow ($)'].tolist()

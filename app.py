@@ -637,7 +637,7 @@ for key, value in inputs.items():
         st.session_state[key] = value
 
 st.session_state["initial_capacity_gw"] = inputs["initial_capacity"] // 1_000_000
-st.session_state["buildout_years"] = inputs["buildout_years"]
+#st.session_state["buildout_years"] = inputs["buildout_years"]
 st.session_state["us_adpop_mil"] = inputs["us_adult_population"] // 1_000_000
 st.session_state["vehicle_ice_eff"] = vehicle_ice_eff
 st.session_state["vehicle_elec_eff"] = vehicle_elec_eff

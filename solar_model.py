@@ -25,7 +25,7 @@ def target_total_energy(inputs):
 
 
 def calculate_bond_principal(inputs):
-    buildout_years = inputs['buildout_years']
+    buildout_years = int(inputs['buildout_years'])
     initial_capacity = inputs['initial_capacity']  # kWp
     target_capacity = inputs['target_capacity']  # kWp
     hours_per_year = inputs['capacity_factor'] * 8760

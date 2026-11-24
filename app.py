@@ -969,16 +969,12 @@ def render_factory_layout(
         "*(Adjust assumptions in the **🏭 Factory CapEx & Carbon Parameters** sidebar section.)*"
     )
 
-    # Pull specific solar yield (kWh/kWp/yr) directly from physics_engine scale_res
-    if "specific_yield_kwh_kwp" in scale_res:
-        physics_yield_kwh_per_kwp = float(scale_res["specific_yield_kwh_kwp"])
-    elif "annual_energy_kwh" in scale_res and float(scale_res["target_capacity_kwp"]) > 0:
-        physics_yield_kwh_per_kwp = float(scale_res["annual_energy_kwh"]) / float(scale_res["target_capacity_kwp"])
-    elif "annual_gen_twh" in scale_res and target_gw > 0:
-        physics_yield_kwh_per_kwp = (float(scale_res["annual_gen_twh"]) * 1e9) / (target_gw * 1e6)
-    else:
-        physics_yield_kwh_per_kwp = 8760.0 * live_cf  # Fallback only if yield key isn't in scale_res
-        #annual_twh = (live_capacity_gw * 8760.0 * live_cf) / 1000.0
+    sr = st.session_state.get("scale_res", {"target_capacity_kwp": 4600e6, "capacity_factor_ac": 0.24})
+    live_capacity_gw = float(sr["target_capacity_kwp"]) / 1_000_000.0    
+    raw_cf = float(sr["capacity_factor_ac"])
+    live_cf = raw_cf / 100.0 if raw_cf > 1.0 else raw_cf
+    physics_yield_kwh_per_kwp = 8760.0 * live_cf  
+       
     # Factory electricity demand (kWh per kWp produced) & Scope 2 + 3 intensity
     kwh_per_kwp_produced = (factory_mw_per_46gw * 1000.0 * 8760.0) / (4.6 * 1_000_000.0)
     scope2_kg_per_kwp = kwh_per_kwp_produced * grid_kg_per_kwh

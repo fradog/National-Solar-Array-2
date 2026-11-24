@@ -450,16 +450,16 @@ with st.sidebar:
         # -------------------------------------------------
         
         with st.expander("🏭 Factory CapEx & Carbon Parameters", expanded=False):
-        buildout_years = st.slider(
-            "Buildout Horizon (Years)",
-            min_value=1,
-            max_value=30,
-            value=int(_ss("buildout_years", 10)),
-            step=1,
-            key="buildout_years",
-            help="Years over which the factory capital cost is amortized across total array output.",
-        )
-        inputs["buildout_years"] = int(buildout_years)
+            buildout_years = st.slider(
+                "Buildout Horizon (Years)",
+                min_value=1,
+                max_value=30,
+                value=int(_ss("buildout_years", 10)),
+                step=1,
+                key="buildout_years",
+                help="Years over which the factory capital cost is amortized across total array output.",
+            )
+            inputs["buildout_years"] = int(buildout_years)
 
             capex_per_kw_yr = st.slider(
                 "Greenfield Factory CapEx ($/kW-yr capacity)",

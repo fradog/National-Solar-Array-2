@@ -450,7 +450,7 @@ with st.sidebar:
         # -------------------------------------------------
         
         with st.expander("🏭 Factory CapEx & Carbon Parameters", expanded=False):
-            build_years = st.slider(
+            buildout_years = st.slider(
                 "Buildout Horizon (Years)",
                 min_value=1,
                 max_value=30,
@@ -668,7 +668,7 @@ for k in list(inputs.keys()):
         inputs[k] = _to_num(inputs[k], is_int=False)
         
 # 1. Amortized Factory CapEx ($/Wdc) — independent of total GW!
-amortized_capex_per_wdc = capex_per_kw_yr / (build_years * 1000.0)
+amortized_capex_per_wdc = capex_per_kw_yr / (buildout_years * 1000.0)
 
 # 2. Carbon Capture Cost ($/Wdc) — independent of total GW!
 kwh_per_kwp_produced = (factory_mw_per_46gw * 1000.0 * 8760.0) / (4.6 * 1_000_000.0)
@@ -739,7 +739,7 @@ inputs["capital_cost_per_kwp"] = scale_res["blended_capex_per_kwp"]
 # ============================================
 
 def render_factory_layout(
-    build_years: int = 10,
+    buildout_years: int = 10,
     num_farms: int = 100,
     ingot_diameter_in: int = 8,
 ):
@@ -764,7 +764,7 @@ def render_factory_layout(
             )
 
         with col2:
-            years = int(build_years)
+            years = int(buildout_years)
             st.metric("Buildout Horizon", f"{years} Years")
 
         with col3:
@@ -1039,7 +1039,7 @@ def render_factory_layout(
     }
 
     
-factory_fin = render_factory_layout(build_years=build_years)
+factory_fin = render_factory_layout(buildout_years=buildout_years)
 
 solar_pv_cost_per_wdc = (
     module_bom_opex_per_wdc

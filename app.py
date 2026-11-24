@@ -287,7 +287,7 @@ col1 = st,columns(1)
 with col1:
     total_energy_quads = st.slider(
         "Energy Goal (quads)", 50.0, 100.0,
-        _ss("total_energy_quads", default_inputs["total_energy_quads"]},
+        _ss("total_energy_quads", default_inputs["total_energy_quads"]),
         0.1, format="%.1f"
     )
 col1, col2, col3 = st.columns(3)
@@ -311,7 +311,7 @@ with col3:
     )
 
 mix_inputs = {
-    "total_energy_quads": 77.10,
+    "total_energy_quads": total_energy_quads,
     "petroleum_fraction": 0.459, "gas_fraction": 0.436, "coal_fraction": 0.105,
     "petroleum_trans_fraction": 0.696, "petroleum_heating_fraction": 0.296, "petroleum_elec_fraction": 0.008,
     "gas_trans_fraction": 0.040, "gas_heating_fraction": 0.560, "gas_elec_fraction": 0.400,

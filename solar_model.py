@@ -288,7 +288,7 @@ def calculate_lcoe_diagnostic(inputs: dict, project_lifespan: int = 30) -> dict:
     deg_rate           = inputs['degradation_rate']
     init_kw            = inputs['initial_capacity']
     target_kw          = inputs['target_capacity']
-    buildout_years     = 10
+    buildout_years     = inputs['buildout_years']
 
     annual_add_kw = (target_kw - init_kw) / buildout_years
     hours_per_year = cf * 8760
@@ -346,7 +346,8 @@ def cumulative_post_debt_cash_flow(cash_flows_df: pd.DataFrame) -> pd.DataFrame:
     df['Cumulative Post-Debt Cash Flow ($B)'] = cash_flows_df['Cash Flow Post-Debt ($B)'].cumsum()
     return df
 
-def calculate_funding_mix(inputs, bond_principal, buildout_years=10):
+def calculate_funding_mix(inputs, bond_principal):
+    buildout_years = inputs['buildout_years']
     us_adult_population = inputs['us_adult_population']
     participation_rate_low = inputs['participation_rate_low']
     participation_rate_mid = inputs['participation_rate_mid']

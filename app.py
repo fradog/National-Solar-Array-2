@@ -72,6 +72,7 @@ st.markdown("[Full README](https://github.com)")
 # DEFAULT INPUTS
 # =============================================
 default_inputs = {
+    "total_energy_quads": 77.1,
     "project_lifespan": 30,
     "initial_capacity": 230_000_000,      # kWp
     "revenue_per_kwh": 0.16,
@@ -272,7 +273,7 @@ if st.button("📐 Show Me the Fiscal Math", type="secondary"):
 
 
 # =============================================
-# EFFICIENCY SLIDERS (MAIN BODY)
+# TARGET ENERGY INPUT AND EFFICIENCY SLIDERS (MAIN BODY)
 # =============================================
 st.subheader("Fossil-to-Electric Efficiency Assumptions")
 st.write(
@@ -282,7 +283,13 @@ st.write(
     "</span>",
     unsafe_allow_html=True,
 )
-
+col1 = st,columns(1)
+with col1:
+    total_energy_quads = st.slider(
+        "Energy Goal (quads)", 50.0, 100.0,
+        _ss("total_energy_quads", default_inputs["total_energy_quads"]},
+        0.1, format="%.1f"
+    )
 col1, col2, col3 = st.columns(3)
 with col1:
     vehicle_ice_eff = st.slider(

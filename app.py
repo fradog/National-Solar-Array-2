@@ -1300,7 +1300,7 @@ else:
 # =============================================
 
 st.header("Bond Principal")
-st.write(f"Bond Principal: ${bond_principal/1e9:.2f}B")
+st.metric("Bond Principal", f"${bond_principal/1e9:.2f}B")
 st.write(f"Carbon Tax Revenue (10yr): ${carbon_tax_10yr/1e9:.2f}B")
 st.header("Key Metrics")
 metrics_df = pd.DataFrame([metrics]).round(2)

@@ -200,7 +200,7 @@ def calculate_lcoe_simple(inputs: dict, project_lifespan: int = 30) -> dict:
     deg_rate           = inputs['degradation_rate']
     init_kw            = inputs['initial_capacity']
     target_kw          = inputs['target_capacity']
-    buildout_years     = 10
+    buildout_years     = inputs['buildout_years']
 
     annual_add_kw = (target_kw - init_kw) / buildout_years
     hours_per_year = cf * 8760

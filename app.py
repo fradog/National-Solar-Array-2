@@ -977,8 +977,8 @@ def render_factory_layout(
     elif "annual_gen_twh" in scale_res and target_gw > 0:
         physics_yield_kwh_per_kwp = (float(scale_res["annual_gen_twh"]) * 1e9) / (target_gw * 1e6)
     else:
-        physics_yield_kwh_per_kwp = 2100.0  # Fallback only if yield key isn't in scale_res
-
+        physics_yield_kwh_per_kwp = 8760.0 * live_cf  # Fallback only if yield key isn't in scale_res
+        #annual_twh = (live_capacity_gw * 8760.0 * live_cf) / 1000.0
     # Factory electricity demand (kWh per kWp produced) & Scope 2 + 3 intensity
     kwh_per_kwp_produced = (factory_mw_per_46gw * 1000.0 * 8760.0) / (4.6 * 1_000_000.0)
     scope2_kg_per_kwp = kwh_per_kwp_produced * grid_kg_per_kwh

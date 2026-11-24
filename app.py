@@ -454,9 +454,8 @@ with st.sidebar:
                 "Buildout Horizon (Years)",
                 min_value=1,
                 max_value=30,
-                value=int(_ss("buildout_years", 10)),
+                value=int(_ss("buildout_years", default_inputs["buildout_years"])),
                 step=1,
-                key="buildout_years",
                 help="Years over which the factory capital cost is amortized across total array output.",
             )
             inputs["buildout_years"] = int(buildout_years)

@@ -69,7 +69,7 @@ st.markdown(
     /* Increase the title ("Energy Goal (quads)") font size and weight */
     .st-key-energy_goal_quads [data-testid="stWidgetLabel"] p {
         font-size: 1.50rem !important;
-        font-weight: 900 !important;
+        font-weight: 700 !important;
     }
 
     /* Increase the numerical readout ONLY for the Energy Goal (quads) slider */
@@ -350,7 +350,7 @@ st.write(
     f"**Efficiency Upgrade Ratio**: {efficiency_upgrade_ratio:,.3f}"
 )
 st.metric(
-    "Post-Electrification U.S. Energy Target**",
+    "Post-Electrification U.S. Energy Target",
     f"{target_energy_twh:,.0f} TWh/yr",
 )
 # =============================================

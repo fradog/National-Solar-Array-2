@@ -63,8 +63,19 @@ LEGEND_ABOVE = dict(
 # PAGE TITLE & DESCRIPTION
 # =============================================
 st.set_page_config(page_title="National Solar Array: Net Zero Economics", layout="wide")
+st.markdown(
+    """
+    <style>
+    /* Increase the numerical readout ONLY for the Energy Goal (quads) slider */
+    .st-key-energy_goal_quads div[data-testid="stSliderThumbValue"] {
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 st.markdown("[Full README](https://github.com)")
-
 
     
 
@@ -287,9 +298,10 @@ st.write(
 col1, = st.columns(1)
 with col1:
     total_energy_quads = st.slider(
-        "Energy Goal (quads)", 50.0, 100.0,
-        _ss("total_energy_quads", default_inputs["total_energy_quads"]),
-        0.1, format="%.1f"
+    "Energy Goal (quads)", 50.0, 100.0,
+    _ss("total_energy_quads", default_inputs["total_energy_quads"]),
+    0.1, format="%.1f",
+    key="energy_goal_quads",
     )
 col1, col2, col3 = st.columns(3)
 with col1:

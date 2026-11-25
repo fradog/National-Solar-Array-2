@@ -347,10 +347,12 @@ target_energy_quads = efficiency_upgrade_ratio * mix_inputs["total_energy_quads"
 target_energy_twh = target_energy_quads * 293.07
 
 st.write(
-    f"**Efficiency Upgrade Ratio**: {efficiency_upgrade_ratio:,.3f}  |  "
-    f"**Post-Electrification U.S. Energy Target**: {target_energy_twh:,.0f} TWh/yr"
+    f"**Efficiency Upgrade Ratio**: {efficiency_upgrade_ratio:,.3f}"
 )
-
+st.metric(
+    "Post-Electrification U.S. Energy Target**",
+    f"{target_energy_twh:,.0f} TWh/yr",
+)
 # =============================================
 # SIDEBAR INPUTS
 # =============================================

@@ -69,7 +69,7 @@ st.markdown(
     /* Increase the title ("Energy Goal (quads)") font size and weight */
     .st-key-energy_goal_quads [data-testid="stWidgetLabel"] p {
         font-size: 1.50rem !important;
-        font-weight: 700 !important;
+        font-weight: 500 !important;
     }
 
     /* Increase the numerical readout ONLY for the Energy Goal (quads) slider */

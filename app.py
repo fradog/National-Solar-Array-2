@@ -68,8 +68,8 @@ st.markdown(
     <style>
     /* Increase the numerical readout ONLY for the Energy Goal (quads) slider */
     .st-key-energy_goal_quads div[data-testid="stSliderThumbValue"] {
-        font-size: 1.25rem !important;
-        font-weight: 700 !important;
+        font-size: 1.50rem !important;
+        font-weight: 900 !important;
     }
     </style>
     """,
